@@ -54,7 +54,7 @@ def get_SitebySpecies(COMs):
     for i, row in enumerate(SbyS):
         
         name = str()
-        if i > 19: name = 'north'
+        if i <= 19: name = 'north'
         else: name = 'south'
         
         if (i+1)%2 > 0:
@@ -255,10 +255,10 @@ def dormancy(COM, enVal):
     ind = COM[p][i]
     
     optima = 1/ind[0] # the species optima is the reciprocal of its
-                              # identity but can also be 1-(1/p), etc.
+                      # identity but can also be 1-(1/p), etc.
     
     Err = np.abs(optima - enVal) # difference between species
-                                 # optima and patch environment    
+                                 # optima and patch environment;   
                                  # value of 0 means no disagreement.
                                     
     dormant = np.random.binomial(1, Err) # higher error means higher 
@@ -293,7 +293,7 @@ def leaveORdie(COM, enVal):
     ind = COM[p][i]
     
     optima = 1/ind[0] # the species optima is the reciprocal of its
-                              # identity but can also be 1-(1/p), etc.
+                      # identity but can also be 1-(1/p), etc.
         
     Err = np.abs(optima - enVal) # difference between species
                                  # optima and patch environment    
@@ -333,7 +333,7 @@ def disperse(COM1, COM2, enVal):
                       # identity but can also be 1-(1/p), etc.
     
     Err = np.abs(optima - enVal) # difference between species
-                                 # optima and patch environment    
+                                 # optima and patch environment;    
                                  # value of 0 means no disagreement.
                                         
     dormant = np.random.binomial(1, Err) # higher error means
@@ -377,8 +377,8 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
         northVal = 0.5
         southVal = 0.5
     elif state == 'heterogeneous':
-        northVal = 0.1
-        southVal = 0.9
+        northVal = 0.2
+        southVal = 0.4
     else: 
         print 'variable state must be homogeneous or heterogeneous'
         sys.exit()

@@ -23,7 +23,7 @@ state_list = ['heterogeneous']#,'homogeneous'] # homogeneity or heterogeneity
             # among local communities local communities vary along a single 
             # environmental axis, e.g.,mean daily temp, precipitation, etc.
 
-im_list = [200]  # number of individuals immigrating
+im_list = [300]  # number of individuals immigrating
                            # from regional pool per time step
 
 time = 500
@@ -66,7 +66,8 @@ for j, state in enumerate(state_list):
                 sys.exit()
                 
             writer.writerow(row)
-        
+            print row
+            
         OUT.close()
         sys.exit()
         
