@@ -1,5 +1,5 @@
 from __future__ import division
-import sys                                            
+import sys, csv
 import numpy as np
 import random
 from random import randrange
@@ -26,7 +26,7 @@ state_list = ['heterogeneous']#,'homogeneous'] # homogeneity or heterogeneity
 im_list = [300]  # number of individuals immigrating
                            # from regional pool per time step
 
-time = 200
+time = 70
 for state in state_list:
     for im in im_list:
         
@@ -35,13 +35,23 @@ for state in state_list:
         print len(southCOM),'patches in south'
             
         SbyS = cf.get_SitebySpecies([northCOM, southCOM])
-            
-        path = '/Users/lisalocey/Desktop/evolution-canyon/microbide/models/'
-        fileName = 'SiteBySpecies_' + str(state) + 'immigration=' + str(im)
-        OUT = open(path + fileName + '.txt','w+')
+        S = len(SbyS[0]) - 3
         
-        #for row in SbyS:
-        #    print row
+        path = '/Users/lisalocey/Desktop/evolution-canyon/microbide/models'
+        path = path + '/SiteBySpecies/'
+        fileName = 'SiteBySpecies_' + str(state) + 'immigration=' + str(im)
+        
+        OUT = open(path + fileName + '.share','w+')
+        writer = csv.writer(OUT, delimiter='\t')
+        
+        linedata = ['label', 'Group', 'numOtus']
+        for i in range(S):
+            linedata.append('Otu'+str(i))
+        writer.writerow(linedata)
+                
+        for row in SbyS:
+            writer.writerow(row)
+    
         sys.exit()
         
             
