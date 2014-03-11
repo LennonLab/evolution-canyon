@@ -7,24 +7,73 @@ import decimal
 
 
 
-def Bray_Curtis(ABV1, ABV2):
+def get_SitebySpecies(COMs):
     
-    """ A function that calculates the Bray-Curtis dissimilarity index, coded
-    by Ken Locey.
-
-    Because similarity is more intuitive than dissimilarity, this function
-    actually return % similarity.
-
-    A value of 0 means that the two sets being compared have no elements
-    in common. A value of 1 means the two sets have identical members.
+    """ A function to generate the site by species matrix in a particular 
+    formate required by Mario's PCoA analyses. 
+    """
+    
+    nABV = getNSDA(COMs[0], False) # False directs the function to only return
+    sABV = getNSDA(COMs[1], False) # the species Id-abundance vector
+    
+    nmax = nABV[-1][0]
+    smax = sABV[-1][0]
+    maxID = max([nmax, smax]) # largest species id#
+    
+    SbyS = []
+    
+    for COM in COMs:
+        for patch in COM:
+            all_list = [0]*maxID
+            active_list = [0]*maxID
+            
+            for ind in patch:
+                
+                spID = ind[0]
+                all_list[spID-1]  += 1
+                
+                if ind[1] == 'a':
+                    active_list[spID-1] += 1
+            
+            SbyS.append(all_list) # DNA analogy
+            SbyS.append(active_list) # RNA analogy
+    
+    SbyS = zip(*SbyS) # these 
+    SbyS = [list(row) for row in SbyS if any(x != 0 for x in row)]
+    SbyS = zip(*SbyS)
+    
+    S = len(SbyS[0])
+    if len(SbyS)%2 > 0:
+        print 'unequal number of patches'
+        sys.exit()
+    
+    siteNumbers = []
+    for i in range(int(S/2)):
+        siteNumbers.extend([i+1,i+1])
+    
+    for i, row in enumerate(SbyS):
         
+        name = str()
+        if i <= 39: name = 'north'
+        else: name = 'south'
+        
+        if (i+1)%2 > 0:
+            SbyS[i] = [0.03, name + str(siteNumbers[i]) + '_all', S] + list(row)
+        else:            
+            SbyS[i] = [0.03, name + str(siteNumbers[i]) + '_active', S] + list(row)
+            
+    return SbyS
+    
+    
+    
+def getlists(ABV1, ABV2):
+    
+    """ This function uses mysteries to do magic and return two lists.
+    
     ABV1 & ABV2  :  Lists that contain species id#s and the species abundance
-            e.g. ABV1 = [[1, 251], [2, 187], [3, 122], ...]
-            where the first element in each sublist is the species id#
-            and the second element is the abundance.
-                    
-    This function expects the lists to come sorted smallest to largest
-    according to species id#  
+                    e.g. ABV1 = [[1, 251], [2, 187], [3, 122], ...]
+                    where the first element in each sublist is the species
+                    id# and the second element is the abundance.
     """
     
     max1 = ABV1[-1][0]
@@ -44,7 +93,32 @@ def Bray_Curtis(ABV1, ABV2):
         
         spID = sp[0]
         ab = sp[1]
-        list2[spID-1] = ab 
+        list2[spID-1] = ab
+        
+    return [list1, list2]
+
+
+
+def Bray_Curtis(ABV1, ABV2):
+    
+    """ A function that calculates the Bray-Curtis dissimilarity index, coded
+    by Ken Locey.
+
+    Because similarity is more intuitive than dissimilarity, this function
+    actually return % similarity.
+
+    A value of 0 means that the two sets being compared have no elements
+    in common. A value of 1 means the two sets have identical members.
+        
+    ABV1 & ABV2  :  Lists that contain species id#s and the species abundance
+                    e.g. ABV1 = [[1, 251], [2, 187], [3, 122], ...]
+                    where the first element in each sublist is the species
+                    id# and the second element is the abundance.
+                    
+    This function expects the lists to come sorted smallest to largest
+    according to species id#  
+    """
+    list1, list2 = getlists(ABV1, ABV2)
     
     C = float()
     for i, ab in enumerate(list1):
@@ -73,7 +147,7 @@ def e_var(SAD):
     return(evar)
     
 
-def getNSDA(COM):
+def getNSDA(COM, verbose=True):
     
     """ A function to find total abundance, species richness, active abundance,
         dormant abundance, dominance, and evenness of a local community.
@@ -113,8 +187,11 @@ def getNSDA(COM):
     BP = max(AD)/N # Berger Parker index of dominance
     evar = e_var(AD) # Smith and Wilson's evenness index 
     
-    return [N, S, D, A, round(BP,3), round(evar,3), abVector]
-    
+    if verbose == True:
+        return [N, S, D, A, round(BP,3), round(evar,3), abVector]
+    elif verbose == False:
+        return abVector
+            
 
     
 
@@ -128,7 +205,7 @@ def reproduction(COM, enVal):
             zeroth patch of COM.
     
     enVal  :  the environmental variable value of the local community. ranges 
-            between 0.0 and 1.0, inclusive. """
+              between 0.0 and 1.0, inclusive. """
     
     p = randrange(len(COM)) # choose a patch from COM at random    
     if len(COM[p]) == 0: return COM # if the patch is empty, return
@@ -169,7 +246,7 @@ def dormancy(COM, enVal):
             zeroth patch of COM.
     
     enVal  :  the environmental variable value of the local community. ranges 
-            between 0.0 and 1.0, inclusive. """
+              between 0.0 and 1.0, inclusive. """
     
     p = randrange(len(COM)) # choose a patch from COM at random    
     if len(COM[p]) == 0: return COM # if the patch is empty, return
@@ -178,10 +255,10 @@ def dormancy(COM, enVal):
     ind = COM[p][i]
     
     optima = 1/ind[0] # the species optima is the reciprocal of its
-                              # identity but can also be 1-(1/p), etc.
+                      # identity but can also be 1-(1/p), etc.
     
     Err = np.abs(optima - enVal) # difference between species
-                                 # optima and patch environment    
+                                 # optima and patch environment;   
                                  # value of 0 means no disagreement.
                                     
     dormant = np.random.binomial(1, Err) # higher error means higher 
@@ -207,7 +284,7 @@ def leaveORdie(COM, enVal):
             zeroth patch of COM.
     
     enVal  :  the environmental variable value of the local community. ranges 
-            between 0.0 and 1.0, inclusive. """
+              between 0.0 and 1.0, inclusive. """
     
     p = randrange(len(COM)) # choose a patch from COM at random    
     if len(COM[p]) == 0: return COM # if the patch is empty, return
@@ -216,7 +293,7 @@ def leaveORdie(COM, enVal):
     ind = COM[p][i]
     
     optima = 1/ind[0] # the species optima is the reciprocal of its
-                              # identity but can also be 1-(1/p), etc.
+                      # identity but can also be 1-(1/p), etc.
         
     Err = np.abs(optima - enVal) # difference between species
                                  # optima and patch environment    
@@ -256,7 +333,7 @@ def disperse(COM1, COM2, enVal):
                       # identity but can also be 1-(1/p), etc.
     
     Err = np.abs(optima - enVal) # difference between species
-                                 # optima and patch environment    
+                                 # optima and patch environment;    
                                  # value of 0 means no disagreement.
                                         
     dormant = np.random.binomial(1, Err) # higher error means
@@ -282,14 +359,10 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
     
     lgp  :  log-series parameter, typically close to 0.99
     
-    state  :  determines whether individuals of different species will
-              have different environmental optima. Value can be:
-        
-            'neutral' = assign each species the same optima
-            'random' = assign species optima at random  
-            'uniform' = assign species optima uniformly across a gradient
-            'aggregated' = assign species optima from a normal distribution
-    
+    state  :  determines whether local communities will have different
+              have different environmental values. Value can be:
+              'heterogeneous' or 'homogeneous'
+            
     time  :  number of time steps to run simulation. Needs to be large
              enough to allow the community to reach a relatively stable state
     """
@@ -304,8 +377,8 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
         northVal = 0.5
         southVal = 0.5
     elif state == 'heterogeneous':
-        northVal = 0.9
-        southVal = 0.1
+        northVal = 0.2
+        southVal = 0.4
     else: 
         print 'variable state must be homogeneous or heterogeneous'
         sys.exit()
@@ -317,6 +390,7 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
         """ Immigration from regional pool"""
         propagules = np.random.logseries(lgp, imRate)  # list of propagules
         # the numbers in the list represent species ID numbers
+        
         # Note: in the log-series, there are lots of 1's and few very large
         # numbers
         
@@ -347,7 +421,7 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
             southCOM = leaveORdie(southCOM, southVal)
             
             """ Between patch dispersal """
-            northORsouth = np.random.binomial(1, 0.6)
+            northORsouth = np.random.binomial(1, 0.5)
             if northORsouth == 1:    
                 northCOM, southCOM = disperse(northCOM, southCOM, southVal)
             else: southCOM, northCOM = disperse(southCOM, northCOM, northVal)
@@ -356,6 +430,7 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
         
         N, S, D, A, BP, Evar, nABV = getNSDA(northCOM)
         print 'time:',t, 'north N:',N,'S:',S,'D:',D,'A:',A,'BP:',BP,'Evar:',Evar
+        
         # ABV stands for 'abundance vector'; a list of species identies and
         # their numerical abundances
         

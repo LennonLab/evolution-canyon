@@ -1,5 +1,5 @@
 from __future__ import division
-import sys                                            
+import sys, csv
 import numpy as np
 import random
 from random import randrange
@@ -14,34 +14,62 @@ import coreFunctions as cf
     matrices.
 """
 
-
-get_siteBySpeciesMatrix(northCOM, southCOM):
-    
-    
-
-
-
-
 num_patches = 20 # number of patches in each local community
 
 lgp = 0.99 # log-series parameter, typically approaches 1 for ecological
            # communities. represents underlying structure of regional pool
 
-state_list = ['heterogeneous','homogeneous'] # homogeneity or heterogeneity 
+state_list = ['heterogeneous']#,'homogeneous'] # homogeneity or heterogeneity 
             # among local communities local communities vary along a single 
             # environmental axis, e.g.,mean daily temp, precipitation, etc.
 
-time_list = [100,500,1000] # number of time steps 
-im_list = [100, 200, 400]  # number of individuals immigrating
+im_list = [300]  # number of individuals immigrating
                            # from regional pool per time step
 
-for state in state_list:
-    for im in im_list:
-        for time in time_list:
+time = 50
+for j, state in enumerate(state_list):
+    for k, im in enumerate(im_list):
+        
+        northCOM, southCOM = cf.microbide(im, num_patches, lgp, state, time)
+        print len(northCOM),'patches in north and',
+        print len(southCOM),'patches in south'
             
-            northCOM, southCOM = cf.microbide(im, num_patches, lgp, state, time)
-            print len(northCOM),'patches in north and',
-            print len(southCOM),'patches in south'
+        SbyS = cf.get_SitebySpecies([northCOM, southCOM])
+        S = len(SbyS[0]) - 3
+        
+        r1 = len(SbyS[0])
+        for row in SbyS:
+            r2 = len(row)
+            if r1 != r2:
+                print 'unequal sized rows in Site by Species matrix'
+                sys.exit()
+            r1 = r2
+        
+        path = '/Users/lisalocey/Desktop/evolution-canyon/microbide/models'
+        path = path + '/SiteBySpecies/'
+        
+        #fileName = 'SiteBySpecies_' + str(state) + '_im=' + str(im)
+        fileName = 'SiteBySpecies_' + str(j) + '_im=' + str(k)
+        
+        OUT = open(path + fileName + '.share','w')
+        writer = csv.writer(OUT, delimiter='\t')
+        
+        linedata = ['label', 'Group', 'numOtus']
+        for i in range(S):
+            linedata.append('Otu'+str(i))
+        
+        writer.writerow(linedata)
+     
+        for row in SbyS:
+            if len(row) != r1:
+                print 'row length has been corrupted'
+                sys.exit()
+                
+            writer.writerow(row)
+            print row
             
-            siteBySpeciesMatrix = get_siteBySpeciesMatrix(northCOM, southCOM)
+        OUT.close()
+        sys.exit()
+        
+            
             
