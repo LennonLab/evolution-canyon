@@ -54,7 +54,7 @@ def get_SitebySpecies(COMs):
     for i, row in enumerate(SbyS):
         
         name = str()
-        if i <= 19: name = 'north'
+        if i <= 39: name = 'north'
         else: name = 'south'
         
         if (i+1)%2 > 0:

@@ -26,7 +26,7 @@ state_list = ['heterogeneous']#,'homogeneous'] # homogeneity or heterogeneity
 im_list = [300]  # number of individuals immigrating
                            # from regional pool per time step
 
-time = 500
+time = 50
 for j, state in enumerate(state_list):
     for k, im in enumerate(im_list):
         
