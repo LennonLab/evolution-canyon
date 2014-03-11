@@ -52,7 +52,7 @@ def get_SitebySpecies(COMs):
         if (i+1)%2 > 0:
             SbyS[i] = [0.03, name + str(i) + '_all', S] + list(row)
         else:            
-            SbyS[i] = [0.03, name + str(i) + '_active', S] + list(row)
+            SbyS[i] = [0.03, name + str(i-1) + '_active', S] + list(row)
             
     return SbyS
     
