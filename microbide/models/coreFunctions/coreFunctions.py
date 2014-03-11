@@ -4,7 +4,6 @@ import numpy as np
 import random
 from random import randrange
 import decimal
-import cloud
 
 
 
@@ -12,6 +11,9 @@ def Bray_Curtis(ABV1, ABV2):
     
     """ A function that calculates the Bray-Curtis dissimilarity index, coded
     by Ken Locey.
+
+    Because similarity is more intuitive than dissimilarity, this function
+    actually return % similarity.
 
     A value of 0 means that the two sets being compared have no elements
     in common. A value of 1 means the two sets have identical members.
@@ -309,7 +311,6 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
         sys.exit()
     
     t = 1
-    time = 200
     N = imRate
     while t <= time:
         
@@ -365,9 +366,3 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
         print 'time:',t, 'Bray-Curtis as percent similarity',BC, '\n'
         
     return [northCOM, southCOM]
-
-# SIMULATIONS DONE
-        
-northCOM, southCOM = microbide(100, 20, 0.99, 'heterogeneous', 100)
-    # i.e. microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500)
-print len(northCOM),'patches in north and', len(southCOM),'patches in south'
