@@ -43,6 +43,14 @@ def get_SitebySpecies(COMs):
     SbyS = zip(*SbyS)
     
     S = len(SbyS[0])
+    if len(SbyS)%2 > 0:
+        print 'unequal number of patches'
+        sys.exit()
+    
+    siteNumbers = []
+    for i in range(int(S/2)):
+        siteNumbers.extend([i+1,i+1])
+    
     for i, row in enumerate(SbyS):
         
         name = str()
@@ -50,9 +58,9 @@ def get_SitebySpecies(COMs):
         else: name = 'south'
         
         if (i+1)%2 > 0:
-            SbyS[i] = [0.03, name + str(i) + '_all', S] + list(row)
+            SbyS[i] = [0.03, name + str(siteNumbers[i]) + '_all', S] + list(row)
         else:            
-            SbyS[i] = [0.03, name + str(i-1) + '_active', S] + list(row)
+            SbyS[i] = [0.03, name + str(siteNumbers[i]) + '_active', S] + list(row)
             
     return SbyS
     
