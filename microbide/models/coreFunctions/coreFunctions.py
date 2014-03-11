@@ -10,9 +10,20 @@ import cloud
 
 def Bray_Curtis(ABV1, ABV2):
     
-    """ A function that calculates the Bray-Curtis dissimilarity index.
-        A value of 0 means that the two sets being compared have no elements
-        in common. A value of 1 means the two sets have identical members. """
+    """ A function that calculates the Bray-Curtis dissimilarity index, coded
+    by Ken Locey.
+
+    A value of 0 means that the two sets being compared have no elements
+    in common. A value of 1 means the two sets have identical members.
+        
+    ABV1 & ABV2  :  Lists that contain species id#s and the species abundance
+            e.g. ABV1 = [[1, 251], [2, 187], [3, 122], ...]
+            where the first element in each sublist is the species id#
+            and the second element is the abundance.
+                    
+    This function expects the lists to come sorted smallest to largest
+    according to species id#  
+    """
     
     max1 = ABV1[-1][0]
     max2 = ABV2[-1][0]
@@ -45,7 +56,7 @@ def Bray_Curtis(ABV1, ABV2):
 
 def e_var(SAD):
     
-    """ Calculates Smith and Wilson's evenness index. 
+    """ Calculates Smith and Wilson's evenness index. coded by Ken Locey.
     
     Smith, B. and J.B. Wilson (1996) A consumer's guide to evenness indices.
     OIKOS. 76, 70-82.
@@ -291,8 +302,8 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
         northVal = 0.5
         southVal = 0.5
     elif state == 'heterogeneous':
-        northVal = 0.5
-        southVal = 0.5
+        northVal = 0.9
+        southVal = 0.1
     else: 
         print 'variable state must be homogeneous or heterogeneous'
         sys.exit()
@@ -303,7 +314,11 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
     while t <= time:
         
         """ Immigration from regional pool"""
-        propagules = np.random.logseries(lgp, imRate)  # list of propagule; a
+        propagules = np.random.logseries(lgp, imRate)  # list of propagules
+        # the numbers in the list represent species ID numbers
+        # Note: in the log-series, there are lots of 1's and few very large
+        # numbers
+        
         for prop in propagules:
             
             northORsouth = np.random.binomial(1, 0.5)
@@ -352,9 +367,6 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
     return [northCOM, southCOM]
 
 # SIMULATIONS DONE
-
-
-
         
 northCOM, southCOM = microbide(100, 20, 0.99, 'heterogeneous', 100)
     # i.e. microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500)
