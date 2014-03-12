@@ -351,7 +351,7 @@ def disperse(COM1, COM2, enVal):
 
 
         
-def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
+def microbide(imRate, num_patches, lgp, northVal, southVal, time=500):
 
     """
     imRate  :  number individuals immigrating from the regional pool
@@ -369,19 +369,6 @@ def microbide(imRate, num_patches, lgp, state= 'heterogeneous', time=500):
     
     northCOM = [list([]) for _ in range(num_patches)]
     southCOM = [list([]) for _ in range(num_patches)]
-    
-    northVal = float()
-    southVal = float()
-    
-    if state == 'homogeneous':
-        northVal = 0.5
-        southVal = 0.5
-    elif state == 'heterogeneous':
-        northVal = 0.2
-        southVal = 0.4
-    else: 
-        print 'variable state must be homogeneous or heterogeneous'
-        sys.exit()
     
     t = 1
     N = imRate

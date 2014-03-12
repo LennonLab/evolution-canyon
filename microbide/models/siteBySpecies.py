@@ -26,15 +26,26 @@ state_list = ['heterogeneous']#,'homogeneous'] # homogeneity or heterogeneity
 im_list = [300]  # number of individuals immigrating
                            # from regional pool per time step
 
+northVal = 0.1
+southVal = 0.4
+
 time = 50
 for j, state in enumerate(state_list):
     for k, im in enumerate(im_list):
         
-        northCOM, southCOM = cf.microbide(im, num_patches, lgp, state, time)
+        northCOM, southCOM = cf.microbide(im, num_patches, lgp, northVal, southVal, time)
+        #job_id = cloud.call(cf.microbide, im, num_patches, lgp, northVal, southVal, time)
+        #northCOM, southCOM = cloud.result(job_id)
+        
+        
         print len(northCOM),'patches in north and',
         print len(southCOM),'patches in south'
-            
+        
         SbyS = cf.get_SitebySpecies([northCOM, southCOM])
+        #job_id = cloud.call(cf.get_SitebySpecies, [northCOM, southCOM])
+        #SbyS = cloud.result(job_id)
+        
+        
         S = len(SbyS[0]) - 3
         
         r1 = len(SbyS[0])
@@ -48,8 +59,8 @@ for j, state in enumerate(state_list):
         path = '/Users/lisalocey/Desktop/evolution-canyon/microbide/models'
         path = path + '/SiteBySpecies/'
         
-        #fileName = 'SiteBySpecies_' + str(state) + '_im=' + str(im)
-        fileName = 'SiteBySpecies_' + str(j) + '_im=' + str(k)
+        fileName = 'SbyS_NorthVal=' + str(northVal) + '_SouthVal='
+        fileName = fileName + str(southVal) + '_im=' + str(im) +'.share'
         
         OUT = open(path + fileName + '.share','w')
         writer = csv.writer(OUT, delimiter='\t')
