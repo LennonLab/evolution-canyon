@@ -19,7 +19,8 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   ec_data <- t(read.otu(shared, "0.03"))
   design <- read.delim(design, header=T, row.names=1)
   
-  # Import Design File 
+  # Remove Zero Sum OTUs
+  ec_data <- ec_data[,!(colSums(abs(ec_data)) ==0)] 
 
   # Calculate Presense Absence
   dataPA <- (ec_data > 0)*1 
