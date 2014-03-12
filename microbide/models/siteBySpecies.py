@@ -27,7 +27,7 @@ im_list = [300]  # number of individuals immigrating
                            # from regional pool per time step
 
 
-optimas = ['zipf', 'neutral', 'random', 'inverse-zipf']
+optimas = ['neutral', 'random', 'inverse-zipf']
 
 northVals = [0.1, 0.3, 0.5]
 southVals = [0.1, 0.3, 0.5]
@@ -72,7 +72,7 @@ for optima in optimas:
                     
                     fileName = 'SbyS_NorthVal=' + str(northVal) + '_SouthVal='
                     fileName = fileName + str(southVal) + '_im=' + str(im)
-                    fileName = fileName + '_' + optima + '_optima.share'
+                    fileName = fileName + '_' + optima + '_optima'
                     
                     OUT = open(path + fileName + '.share','w')
                     writer = csv.writer(OUT, delimiter='\t')
