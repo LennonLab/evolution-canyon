@@ -7,6 +7,26 @@ import decimal
 
 
 
+def get_optima(optima_method, optima_dict, prop):
+    
+    if optima_method == 'zipf':
+        optima = 1/prop
+          
+    elif optima_method == 'neutral':
+        optima = 0.3
+        
+    elif optima_method == 'random':
+        optima = random.randint(10000)/10000
+          
+    elif optima_method == 'inverse-zipf':
+        optima = 1 - (1/prop)
+
+    optima_dict[prop] = optima
+    
+    return [optima, optima_dict]
+    
+    
+
 def get_SitebySpecies(COMs):
     
     """ A function to generate the site by species matrix in a particular 
@@ -216,8 +236,7 @@ def reproduction(COM, enVal):
     if ind[1] == 'd':
         return COM # dormant individuals can't reproduce
     
-    optima = 1/ind[0] # the species optima is the reciprocal of its
-                      # identity but can also be 1-(1/p), etc.
+    optima = ind[2] # the species environmental optima 
                 
     Err = np.abs(optima - enVal) # difference between species
                                  # optima and patch environment    
@@ -254,8 +273,7 @@ def dormancy(COM, enVal):
     i = randrange(len(COM[p])) # choose an individual at random from patch p
     ind = COM[p][i]
     
-    optima = 1/ind[0] # the species optima is the reciprocal of its
-                      # identity but can also be 1-(1/p), etc.
+    optima = ind[2] # the species environmental optima 
     
     Err = np.abs(optima - enVal) # difference between species
                                  # optima and patch environment;   
@@ -292,8 +310,7 @@ def leaveORdie(COM, enVal):
     i = randrange(len(COM[p])) # choose an individual at random from patch p
     ind = COM[p][i]
     
-    optima = 1/ind[0] # the species optima is the reciprocal of its
-                      # identity but can also be 1-(1/p), etc.
+    optima = ind[2] # the species environmental optima 
         
     Err = np.abs(optima - enVal) # difference between species
                                  # optima and patch environment    
@@ -329,8 +346,7 @@ def disperse(COM1, COM2, enVal):
     
     p2 = randrange(len(COM2))    # choose a patch at random from COM2
     
-    optima = 1/ind[0] # the species optima is the reciprocal of its
-                      # identity but can also be 1-(1/p), etc.
+    optima = ind[2] # the species environmental optima 
     
     Err = np.abs(optima - enVal) # difference between species
                                  # optima and patch environment;    
@@ -351,7 +367,7 @@ def disperse(COM1, COM2, enVal):
 
 
         
-def microbide(imRate, num_patches, lgp, northVal, southVal, time=500):
+def microbide(imRate, num_patches, lgp, northVal, southVal, optima_method, time=500):
 
     """
     imRate  :  number individuals immigrating from the regional pool
@@ -370,6 +386,8 @@ def microbide(imRate, num_patches, lgp, northVal, southVal, time=500):
     northCOM = [list([]) for _ in range(num_patches)]
     southCOM = [list([]) for _ in range(num_patches)]
     
+    optima_dict = {}
+    
     t = 1
     N = imRate
     while t <= time:
@@ -383,15 +401,21 @@ def microbide(imRate, num_patches, lgp, northVal, southVal, time=500):
         
         for prop in propagules:
             
-            northORsouth = np.random.binomial(1, 0.5)
+            northORsouth = np.random.binomial(1, 0.5) 
+            
+            if prop in optima_dict:
+                optima = optima_dict[prop]
+            
+            else: 
+                optima, optima_dict = get_optima(optima_method, optima_dict, prop)
             
             if northORsouth == 0:            
                 i = randrange(num_patches)
-                northCOM[i].append([prop, 'd']) # add dormant individual
+                northCOM[i].append([prop, 'd', optima]) # add dormant individual
                                                 # to north community
             else: 
                 i = randrange(num_patches)
-                southCOM[i].append([prop, 'd']) # add individual
+                southCOM[i].append([prop, 'd', optima]) # add individual
                                                 # to south community
         
         for i in range(N):    
