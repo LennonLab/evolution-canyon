@@ -83,6 +83,8 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
     "green3"), pch=c(21,21,22,22), bty='o', box.lty=0, bg="white", cex=1.5, )
   box(lwd=2)
   dev.copy2pdf(file=paste("./plots/",plot.title,".pdf",sep=""))
+  dev.copy(png, file=paste("./plots/",plot.title,".png",sep=""), width=72*28, height=72*28, res=72*4)
+  dev.off()
   
   # Adonis (PERMANOVA)
   # Adonis runs a PERMANOVA (Created by Marti J. Anderson) 
@@ -90,8 +92,8 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   # You can make very complex experimental designs with it
   # The default distance measure is bray-curtis, but other measures 
   # (Chao, Jaccard, Euclidean) can be used when specified  
-  Adonis <- adonis(sampleREL.dist ~ design$molecule*design$slope, method="bray", 
-    permutations=1000)
-  return(Adonis)
+  #Adonis <- adonis(sampleREL.dist ~ design$molecule*design$slope, method="bray", 
+  #  permutations=1000)
+  #return(Adonis)
   }
   
