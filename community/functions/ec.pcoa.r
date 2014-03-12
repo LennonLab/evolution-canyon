@@ -74,9 +74,12 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   points(pcoap$V2, pcoap$V1, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)   
   ordiellipse(cbind(pcoap$V2, pcoap$V1), pcoap$site, kind="sd", conf=0.95,
     lwd=2, lty=3, draw = "lines", col = "black", label=TRUE)
-  legend("topleft", c("All", "Active", levels(pcoap$slope)[1], 
-    levels(pcoap$slope)[2]), pt.lwd=2, col="black", pt.bg=c("white", "white", "brown3", 
-    "green3"), pch=c(21,22,22,22), bty='n', cex=2)
+  legend("topleft", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""), 
+    paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""), 
+    paste("Active; ",levels(pcoap$slope)[1]," Slope", sep=""),
+    paste("Active; ",levels(pcoap$slope)[2]," Slope", sep="")), 
+    pt.lwd=2, col="black", pt.bg=c("brown3", "green3", "brown3", 
+    "green3"), pch=c(21,21,22,22), bty='o', box.lty=0, bg="white", cex=1.5, )
   box(lwd=2)
   dev.copy2pdf(file=paste("./plots/",plot.title,".pdf",sep=""))
   
