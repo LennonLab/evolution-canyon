@@ -16,8 +16,8 @@ def get_optima(optima_method, optima_dict, prop):
         optima = 0.3
         
     elif optima_method == 'random':
-        optima = random.randint(10000)/10000
-          
+        optima = random.randint(1,10000)/10000
+      
     elif optima_method == 'inverse-zipf':
         optima = 1 - (1/prop)
 
