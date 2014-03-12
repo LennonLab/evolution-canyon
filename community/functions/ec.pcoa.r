@@ -19,7 +19,8 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   ec_data <- t(read.otu(shared, "0.03"))
   design <- read.delim(design, header=T, row.names=1)
   
-  # Import Design File 
+  # Remove Zero Sum OTUs
+  ec_data <- ec_data[,!(colSums(abs(ec_data)) ==0)] 
 
   # Calculate Presense Absence
   dataPA <- (ec_data > 0)*1 
@@ -55,7 +56,7 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   # Initiate Plot
   plot(pcoap$V2, pcoap$V1, xlab=paste("PCoA Axis 2 (",explainvar2, "%)", sep="")
     , ylab=paste("PCoA Axis 1 (",explainvar1, "%)", sep=""), 
-    xlim=rev(range(x.dim)),ylim= y.dim, pch=16, cex=2.0, type="n",xaxt="n",
+    xlim=x.dim,ylim= y.dim, pch=16, cex=2.0, type="n",xaxt="n",
     yaxt="n", cex.lab=1.5, cex.axis=1.2)  
   axis(side=1, las=1)   
   axis(side=2, las=1)    

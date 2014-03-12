@@ -1,13 +1,13 @@
 ################################################################################
 #                                                                              #
 #	Evolution Canyon Project: Microbial Community PcoA and PERMANOVA             #
-#   Analysis of simmulation data                                               #
+#   Analysis of MICROBIDE output 1                                             #
 #                                                                              #
 ################################################################################
 #                                                                              #
 #	Written by: Mario Muscarella                                                 #
 #                                                                              #
-#	Last update: 2014/03/11                                                      #
+#	Last update: 2014/03/12                                                      #
 #                                                                              #
 ################################################################################
 
@@ -16,8 +16,15 @@ rm(list=ls())
 setwd("~/GitHub/evolution-canyon/community")
 source("functions/ec.pcoa.r")
 
-# Run analysis of Bad Evolution Canyon data set
-ec.simmy1 <- ec.pcoa(shared = "./data/simmy1.shared", design = "./data/simmy.design.txt",
-  plot.title = "EC.simmy2")
+# Run analysis of MICROBIDE simulation data
+
+input <- list.files("./data", "*optima.shared")
+
+permanova.output <- list()
+
+for (i in 1:length(input)){
+  permanova.output[[input[i]]] = ec.pcoa(shared = paste("./data/", input[i], 
+  sep=""), design = "./data/simmy.design.txt", plot.title = input[i])
+  }
   
-ec.simmy1 # Prints PERMANOVA Results
+permanova.output # Prints PERMANOVA Results for All
