@@ -26,61 +26,69 @@ state_list = ['heterogeneous']#,'homogeneous'] # homogeneity or heterogeneity
 im_list = [300]  # number of individuals immigrating
                            # from regional pool per time step
 
-northVal = 0.1
-southVal = 0.4
 
-time = 50
-for j, state in enumerate(state_list):
-    for k, im in enumerate(im_list):
+optimas = ['zipf', 'neutral', 'random', 'inverse-zipf']
+
+northVals = [0.1, 0.3, 0.5]
+southVals = [0.1, 0.3, 0.5]
+
+time = 500
+
+for optima in optimas:
+    
+    for northVal in northVals:
         
-        northCOM, southCOM = cf.microbide(im, num_patches, lgp, northVal, southVal, time)
-        #job_id = cloud.call(cf.microbide, im, num_patches, lgp, northVal, southVal, time)
-        #northCOM, southCOM = cloud.result(job_id)
-        
-        
-        print len(northCOM),'patches in north and',
-        print len(southCOM),'patches in south'
-        
-        SbyS = cf.get_SitebySpecies([northCOM, southCOM])
-        #job_id = cloud.call(cf.get_SitebySpecies, [northCOM, southCOM])
-        #SbyS = cloud.result(job_id)
-        
-        
-        S = len(SbyS[0]) - 3
-        
-        r1 = len(SbyS[0])
-        for row in SbyS:
-            r2 = len(row)
-            if r1 != r2:
-                print 'unequal sized rows in Site by Species matrix'
-                sys.exit()
-            r1 = r2
-        
-        path = '/Users/lisalocey/Desktop/evolution-canyon/microbide/models'
-        path = path + '/SiteBySpecies/'
-        
-        fileName = 'SbyS_NorthVal=' + str(northVal) + '_SouthVal='
-        fileName = fileName + str(southVal) + '_im=' + str(im) +'.share'
-        
-        OUT = open(path + fileName + '.share','w')
-        writer = csv.writer(OUT, delimiter='\t')
-        
-        linedata = ['label', 'Group', 'numOtus']
-        for i in range(S):
-            linedata.append('Otu'+str(i))
-        
-        writer.writerow(linedata)
-     
-        for row in SbyS:
-            if len(row) != r1:
-                print 'row length has been corrupted'
-                sys.exit()
+        for southVal in southVals:
+            
+            for j, state in enumerate(state_list):
                 
-            writer.writerow(row)
-            print row
-            
-        OUT.close()
-        sys.exit()
-        
-            
-            
+                for k, im in enumerate(im_list):
+                    
+                    northCOM, southCOM = cf.microbide(im, num_patches, lgp, northVal, southVal, optima, time)
+                    #job_id = cloud.call(cf.microbide, im, num_patches, lgp, northVal, southVal, optima, time)
+                    #northCOM, southCOM = cloud.result(job_id)
+                    
+                    
+                    print len(northCOM),'patches in north and',
+                    print len(southCOM),'patches in south'
+                    
+                    SbyS = cf.get_SitebySpecies([northCOM, southCOM])
+                    #job_id = cloud.call(cf.get_SitebySpecies, [northCOM, southCOM])
+                    #SbyS = cloud.result(job_id)
+                    
+                    
+                    S = len(SbyS[0]) - 3
+                    
+                    r1 = len(SbyS[0])
+                    for row in SbyS:
+                        r2 = len(row)
+                        if r1 != r2:
+                            print 'unequal sized rows in Site by Species matrix'
+                            sys.exit()
+                        r1 = r2
+                    
+                    path = '/Users/lisalocey/Desktop/evolution-canyon/microbide/models'
+                    path = path + '/SiteBySpecies/'
+                    
+                    fileName = 'SbyS_NorthVal=' + str(northVal) + '_SouthVal='
+                    fileName = fileName + str(southVal) + '_im=' + str(im)
+                    fileName = fileName + '_' + optima + '_optima.share'
+                    
+                    OUT = open(path + fileName + '.share','w')
+                    writer = csv.writer(OUT, delimiter='\t')
+                    
+                    linedata = ['label', 'Group', 'numOtus']
+                    for i in range(S):
+                        linedata.append('Otu'+str(i))
+                    
+                    writer.writerow(linedata)
+                
+                    for row in SbyS:
+                        if len(row) != r1:
+                            print 'row length has been corrupted'
+                            sys.exit()
+                    
+                        writer.writerow(row)
+                        #print row
+                        
+                    OUT.close()
