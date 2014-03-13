@@ -50,6 +50,7 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   
   # Plot Parameters
   par(mfrow=c(1,1), mar=c(5,5,1,1)) 
+  layout(rbind(1, 2), height=c(7, 1)) 
   x.dim <- c(min(pcoap$V2)+min(pcoap$V2)*0.2,max(pcoap$V2)+max(pcoap$V2)*0.2)
   y.dim <- c(min(pcoap$V1)+min(pcoap$V1)*0.2,max(pcoap$V1)+max(pcoap$V1)*0.2)
   
@@ -69,21 +70,30 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
       }
   slope.color <- rep(NA, dim(pcoap)[1])
     for (i in 1:length(slope.color)){
-      if (pcoap$slope[i] == levels(pcoap$slope)[1]) {slope.color[i] = "brown3"}
+      if (pcoap$slope[i] == levels(pcoap$slope)[1]) {slope.color[i] = "brown2"}
       else {slope.color[i] = "green3"}
       } 
   points(pcoap$V2, pcoap$V1, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)   
   ordiellipse(cbind(pcoap$V2, pcoap$V1), pcoap$site, kind="sd", conf=0.95,
     lwd=2, lty=3, draw = "lines", col = "black", label=TRUE)
-  legend("topleft", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""), 
+  # legend("topleft", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""), 
+  #   paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""), 
+  #   paste("Active; ",levels(pcoap$slope)[1]," Slope", sep=""),
+  #   paste("Active; ",levels(pcoap$slope)[2]," Slope", sep="")), 
+  #   pt.lwd=2, col="black", pt.bg=c("brown3", "green3", "brown3", 
+  #   "green3"), pch=c(21,21,22,22), bty='o', box.lty=0, bg="white", cex=1.5)
+  box(lwd=2)
+  par(mar=c(0, 3, 0, 0))
+  plot.new()
+  legend("center", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""), 
     paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""), 
     paste("Active; ",levels(pcoap$slope)[1]," Slope", sep=""),
     paste("Active; ",levels(pcoap$slope)[2]," Slope", sep="")), 
-    pt.lwd=2, col="black", pt.bg=c("brown3", "green3", "brown3", 
-    "green3"), pch=c(21,21,22,22), bty='o', box.lty=0, bg="white", cex=1.5, )
-  box(lwd=2)
+    pt.lwd=2, col="black", pt.bg=c("brown2", "green3", "brown2", 
+    "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=1.5, pt.cex=2)
   dev.copy2pdf(file=paste("./plots/",plot.title,".pdf",sep=""))
-  dev.copy(png, file=paste("./plots/",plot.title,".png",sep=""), width=72*28, height=72*28, res=72*4)
+  dev.copy(png, file=paste("./plots/",plot.title,".png",sep=""), width=72*(7*4), 
+    height=72*(8*4), res=72*4)
   dev.off()
   
   # Adonis (PERMANOVA)
@@ -92,8 +102,8 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   # You can make very complex experimental designs with it
   # The default distance measure is bray-curtis, but other measures 
   # (Chao, Jaccard, Euclidean) can be used when specified  
-  #Adonis <- adonis(sampleREL.dist ~ design$molecule*design$slope, method="bray", 
-  #  permutations=1000)
-  #return(Adonis)
+#  Adonis <- adonis(sampleREL.dist ~ design$molecule*design$slope, method="bray", 
+#    permutations=1000)
+#    return(Adonis)
   }
   
