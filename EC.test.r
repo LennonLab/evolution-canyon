@@ -21,3 +21,5 @@ ec.test <- ec.pcoa(shared = "./data/EC.bad.shared", design = "./data/design.txt"
   plot.title = "EC.test")
   
 ec.test # Prints PERMANOVA Results
+
+#testing for J with Git
