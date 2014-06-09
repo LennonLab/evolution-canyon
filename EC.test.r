@@ -13,8 +13,8 @@
 
 # Setup Work Environment
 rm(list=ls())
-setwd("~/GitHub/evolution-canyon/community")
-source("functions/ec.pcoa.r")
+setwd("~/GitHub/evolution-canyon")
+source("bin/ec.pcoa.r")
 
 # Run analysis of Bad Evolution Canyon data set
 ec.test <- ec.pcoa(shared = "./data/EC.bad.shared", design = "./data/design.txt",
