@@ -12,7 +12,7 @@
 
 ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
 
-  source("functions/DiversityFunctions.r")  
+  source("bin/DiversityFunctions.r")  
   require(vegan)                                   
 
   # Import Site by OTU Matrix
