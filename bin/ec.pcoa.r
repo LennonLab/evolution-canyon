@@ -22,8 +22,11 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   # Remove problematic samples
   ec_data_red <- ec_data[,-c(20, 21, 25, 27)] #EC_2A_D, EC_2A_R, EC_2C_R, EC_2D_R
   
+  # Remove 'alona' OTUs
+  ec_data_red <- ec_data_red[rowSums(ec_data_red) > (0.001 * sum(colSums(ec_data_red))),]
+  
   # Remove Zero Sum OTUs
-  ec_data_red <- ec_data_red[!(rowSums(abs(ec_data_red)) ==0),] # remove zero occurrences after sample removal
+  ec_data_red <- ec_data_red[!(rowSums(abs(ec_data_red)) ==0),] # zero occurrences after problem-sample removal
 
   # Check on fancy code to remove OTU that are rare across samples
 
@@ -36,10 +39,10 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
     dataREL[,i] = ec_data[,i]/sum(ec_data[,i])
     }  
 
-  # Create Distance Matrix
+  # Create Distance Matrix with bray (deafault), manhattan, euclidean, canberra, bray, kulczynski, jaccard, gower, altGower, morisita, horn, mountford, raup, binomial, or chao. Most should be part of vegan, but possilbly 'labdsv' or 'BiodiversityR' packages
   samplePA.dist <- vegdist(t(dataPA),method="bray")
   sampleREL.dist <- vegdist(t(dataREL),method="bray")
-
+      
   # Principal Coordinates Analysis
   ec_pcoa <- cmdscale(sampleREL.dist,k=3,eig=TRUE,add=FALSE) 
     # Classical (Metric) Multidimensional Scaling; returns PCoA coordinates
@@ -80,7 +83,7 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
       } 
   points(pcoap$V2, pcoap$V1, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)   
   ordiellipse(cbind(pcoap$V2, pcoap$V1), pcoap$site, kind="sd", conf=0.95,
-    lwd=2, lty=3, draw = "lines", col = "black", label=TRUE)
+    lwd=2, lty=0, draw = "lines", col = "black", label=TRUE)
   # legend("topleft", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""), 
   #   paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""), 
   #   paste("Active; ",levels(pcoap$slope)[1]," Slope", sep=""),
@@ -96,6 +99,12 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
     paste("Active; ",levels(pcoap$slope)[2]," Slope", sep="")), 
     pt.lwd=2, col="black", pt.bg=c("brown2", "green3", "brown2", 
     "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=1.5, pt.cex=2)
+    
+    
+    
+    
+    
+    
   dev.copy2pdf(file=paste("./plots/",plot.title,".pdf",sep=""))
   dev.copy(png, file=paste("./plots/",plot.title,".png",sep=""), width=72*(7*4), 
     height=72*(8*4), res=72*4)
