@@ -19,8 +19,13 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   ec_data <- t(read.otu(shared, "0.03"))
   design <- read.delim(design, header=T, row.names=1)
   
+  # Remove problematic samples
+  ec_data_red <- ec_data[,-c(20, 21, 25, 27)] #EC_2A_D, EC_2A_R, EC_2C_R, EC_2D_R
+  
   # Remove Zero Sum OTUs
-  ec_data <- ec_data[,!(colSums(abs(ec_data)) ==0)] 
+  ec_data_red <- ec_data_red[!(rowSums(abs(ec_data_red)) ==0),] # remove zero occurrences after sample removal
+
+  # Check on fancy code to remove OTU that are rare across samples
 
   # Calculate Presense Absence
   dataPA <- (ec_data > 0)*1 
