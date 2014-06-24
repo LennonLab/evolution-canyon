@@ -19,6 +19,9 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   ec_data <- t(read.otu(shared, "0.03"))
   design <- read.delim(design, header=T, row.names=1)
   
+  # Note: owing to amplification issues, we only sequenced 76 of 80 samples. 
+  # The four samples not included are C-1E-R, EC-2G-R, EC-2J-R, EC-6I-D
+  
   # Remove problematic samples
   ec_data_red <- ec_data[,-c(20, 21, 25, 27)] #EC_2A_D, EC_2A_R, EC_2C_R, EC_2D_R
   
