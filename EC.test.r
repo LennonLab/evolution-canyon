@@ -14,8 +14,8 @@
 # Setup Work Environment
 rm(list=ls())
 setwd("~/GitHub/evolution-canyon")
-source("bin/DiversityFunctions.r")
-source("bin/ec.pcoa.r")
+source("./bin/DiversityFunctions.r")
+source("./bin/ec.pcoa.r")
 
 # Run analysis of Bad Evolution Canyon data set
 ec.test <- ec.pcoa(shared     = "./mothur/EC.bac.final.shared", 
