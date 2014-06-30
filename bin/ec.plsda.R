@@ -1,12 +1,12 @@
 ################################################################################
 #                                                                              #
-#	Evolution Canyon Project: Microbial Community PL-SDA                       #
+#	Evolution Canyon Project: Microbial Community PL-SDA                         #
 #                                                                              #
 ################################################################################
 #                                                                              #
-#	Written by: Jay Lennon and Mario Muscarella                                #
+#	Written by: Jay Lennon and Mario Muscarella                                  #
 #                                                                              #
-#	Last update: 2014/06/24                                                    #
+#	Last update: 2014/06/24                                                      #
 #                                                                              #
 ################################################################################
 
@@ -23,7 +23,7 @@
 
 ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
 
-  source("bin/DiversityFunctions.r")  
+  source("./bin/DiversityFunctions.r")  
   require(vegan)                                   
   require(mixOmics)
   require(som)
@@ -92,6 +92,7 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
    
 #5 -- PLOTTING 
   points <- EC_multilevel$variates$X 
+  par(mar=c(5,5,1,1), oma=c(1,1,1,1)+0.1 )
   plot(points[,1], points[,2], xlab="PLSDA Axis 1 ", ylab="PLSDA Axis 2", 
   xlim=c(min(points[,1])+min(points[,1])*0.1,max(points[,1])+max(points[,1])*0.1),
   ylim=c(min(points[,2])+min(points[,2])*0.1,max(points[,2])+max(points[,2])*0.1),
@@ -128,6 +129,18 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
 
   
  ### Stuff below is leftover from PCoA. May want to consider 
+ 
+ # From P-Meso Project
+ # Combine with Taxonomy
+hetero.tax.raw <- (read.delim("../mothur/output/tanks.bac.final.0.03.taxonomy"))
+hetero.tax <- transform(hetero.tax.raw, Taxonomy=colsplit(hetero.tax.raw[,3],
+ split="\\;", names=c("Domain","Phylum","Class","Order","Family","Genus")))
+rownames(hetero.tax) <- hetero.tax[,1]
+rownames(heteros.bio) <- gsub("Otu0", "Otu", rownames(heteros.bio)) 
+hetero.data <- merge(heteros.bio, hetero.tax, by = "row.names", all.x=T )
+hetero.data <- hetero.data[order(hetero.data$group, -hetero.data$indval), ]
+hetero.data <- hetero.data[hetero.data$Taxonomy$Phylum != "unclassified(100)",]
+
 
   
   
