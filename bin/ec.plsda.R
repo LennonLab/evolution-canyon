@@ -89,6 +89,18 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   Rd.Y = cbind(Rd.YvsU, cumsum(Rd.YvsU))
   colnames(Rd.Y) = c("Proportion", "Cumulative")
   Rd.Y # percent of variance explained by each component
+  
+#4 -- Variation Explained by axis
+  # Calculate distance between samples (Bray Curtis or Euclidean?)
+  X.dist  <- vegdist(t(ec_data_red),method="euclidean")
+  # Calculate distance between samples in reduced (ordination) space
+  plsda.1 <- dist(EC_multilevel$variates$X[,1],method="euclidean")
+  plsda.2 <- dist(EC_multilevel$variates$X[,2],method="euclidean")
+  plsda.3 <- dist(EC_multilevel$variates$X[,3],method="euclidean")
+  # Calculate variation explained
+  var1 <- cor(X.dist, plsda.1)
+  var2 <- cor(X.dist, plsda.2)
+  var3 <- cor(X.dist, plsda.3)
    
 #5 -- PLOTTING 
   points <- EC_multilevel$variates$X 
