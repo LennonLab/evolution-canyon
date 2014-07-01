@@ -51,6 +51,8 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   samps_red <- colnames(ec_data_red) # recover samples from reduced dataset
   design_red <- design[samps_red,] # design matrix w/o problem samples & pairs
   
+  design_red$paired <- c(rep(seq(1:14), each=2), rep(seq(1:19), each=2))
+  
 #2 -- Options for transformation, relativation, and normalization
   Xt <- t(ec_data_red) # transpose sample x OTU matrix; necssary for 'multilelve'
   Xlogt <- decostand(Xt,method="log")
@@ -74,9 +76,12 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
 #3 -- MULTILEVEL ANALYSIS
   slope <- design_red$slope # factor 1
   molecule <- design_red$molecule # factor 2 
+  site <- design_red$site
   slope.molecule <- data.frame(cbind(as.character(slope),as.character(molecule))) # Y matrix with factor 1 and 2
+  slope.site <- data.frame(cbind(as.character(slope), as.character(site)))
   slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")], sep = "")) # create unique treat ID vector
-  paired <- design_red$paired_across_slope # identifies paired samples (i.e., DNA-RNA)
+  slope.site.concat <- do.call(paste, c(slope.site[c("X1", "X2")], sep = ""))
+  paired <- design_red$paired # identifies paired samples (i.e., DNA-RNA)
   EC_multilevel <- multilevel(X, cond = slope.molecule, sample = paired, ncomp = 3, method = 'splsda') 
   # change up "X" in multilevel to reflect transformation, etc. above 
   
@@ -123,7 +128,8 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
       if (slope[i] == levels(slope)[1]) {slope.color[i] = "brown2"}
       else {slope.color[i] = "green3"}
       } 
-  points(points[,1], points[,2], pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)   
+  points(points[,1], points[,2], pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
+  #text(points[,1], points[,2], row.names(points))   
   ordiellipse(cbind(points[,1], points[,2]), slope.molecule.concat, kind="sd", conf=0.95,
     lwd=2, lty=2, draw = "lines", col = "black", label=TRUE) 
    
