@@ -73,6 +73,22 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   # personal communication with Kim-Anh Le Cao (mixOmics developer). However, it appears that 'multilevel' 
   # procedure doesn't run w/o normalization
 
+
+
+#3a
+
+# one way design following mixomics example
+# new design with slope.molecule as one column (e.g., AFDNA) and station (e.g, 1,2,5,6)
+# multilevel (X,cond=ec_desigh$slope.mol, sample=ec_design$station)
+
+
+
+
+
+
+
+
+
 #3 -- MULTILEVEL ANALYSIS
   slope <- design_red$slope # factor 1
   molecule <- design_red$molecule # factor 2 
@@ -87,7 +103,7 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   
 #4 -- Variation Explained by axis
   # Calculate distance between samples (Bray Curtis or Euclidean?)
-  X.dist  <- vegdist(t(ec_data_red),method="euclidean") 
+  X.dist  <- vegdist(X,method="euclidean") 
   # Shouldn't "ec_data_red be "X"?; however, crashes R!
   # This might explain why var 3> var; doesn't match with multilevel output
   # Calculate distance between samples in reduced (ordination) space
@@ -127,9 +143,9 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
       } # identifies symbol shape based on molecule
   slope.color <- rep(NA, dim(points)[1])
     for (i in 1:length(slope.color)){
-      if (slope[i] == levels(slope)[1]) {slope.color[i] = "brown2"}
+      if (slope[i] == levels(slope)[1]) {slope.color[i] = "brown"}
       else {slope.color[i] = "green3"}
-      } # identifies symbol color based on slope; error here? slope insted of slope color?
+      } # identifies symbol color based on slope; error here? slope insted of slope.color?
   points(points[,1], points[,2], pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
   #text(points[,1], points[,2], row.names(points))   
   ordiellipse(cbind(points[,1], points[,2]), slope.molecule.concat, kind="sd", conf=0.95,
