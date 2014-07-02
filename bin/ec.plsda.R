@@ -87,7 +87,9 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   
 #4 -- Variation Explained by axis
   # Calculate distance between samples (Bray Curtis or Euclidean?)
-  X.dist  <- vegdist(t(ec_data_red),method="euclidean") ---> # Shouldn't this be "X"; changed and crashed....
+  X.dist  <- vegdist(t(ec_data_red),method="euclidean") 
+  # Shouldn't "ec_data_red be "X"?; however, crashes R!
+  # This might explain why var 3> var; doesn't match with multilevel output
   # Calculate distance between samples in reduced (ordination) space
   plsda.1 <- dist(EC_multilevel$variates$X[,1],method="euclidean")
   plsda.2 <- dist(EC_multilevel$variates$X[,2],method="euclidean")
