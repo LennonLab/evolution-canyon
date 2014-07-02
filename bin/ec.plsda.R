@@ -1,24 +1,24 @@
 ################################################################################
 #                                                                              #
-#	Evolution Canyon Project: Microbial Community PL-SDA                         #
+#	Evolution Canyon Project: Microbial Community PL-SDA                       #
 #                                                                              #
 ################################################################################
 #                                                                              #
-#	Written by: Jay Lennon and Mario Muscarella                                  #
+#	Written by: Jay Lennon and Mario Muscarella                                #
 #                                                                              #
-#	Last update: 2014/06/24                                                      #
+#	Last update: 2014/06/24                                                    #
 #                                                                              #
 ################################################################################
 
 #### Things left to do	
-	# use greenegenes or silva database 
-	# confirm factors are set up right (paired)
-	# confirm normalization (relative recovery, log transformation)
-	# figure out how to get explained total variance for each axis
-	# figure out how to identify influential taxa using loadings
-	# load taxonomy in (see Pmeso code on github)
-	# consider removal of rare taxa
-	# use Stuart's PERMANOVA that accounts for paired samples
+	# use greenegenes or silva database --> done?
+	# confirm factors are set up right (paired) --> not sure
+	# confirm normalization (relative recovery, log transformation) --> prob OK
+	# figure out how to get explained total variance for each axis --> done
+	# figure out how to identify influential taxa using loadings --> not yet
+	# load taxonomy in (see Pmeso code on github) --> getting there
+	# consider removal of rare taxa --> not yet
+	# use Stuart's PERMANOVA that accounts for paired samples --> new file?
 	# confirm these are actually "bad": EC-2A-D, EC-2A-R, EC-2C-R, EC-2D-R
 
 ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
@@ -50,11 +50,11 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   
   samps_red <- colnames(ec_data_red) # recover samples from reduced dataset
   design_red <- design[samps_red,] # design matrix w/o problem samples & pairs
-  
-  design_red$paired <- c(rep(seq(1:14), each=2), rep(seq(1:19), each=2))
+  design_red$paired <- c(rep(seq(1:14), each=2), rep(seq(1:19), each=2)) 
+  # design matrix with renumbered pairs after removing problem pairs
   
 #2 -- Options for transformation, relativation, and normalization
-  Xt <- t(ec_data_red) # transpose sample x OTU matrix; necssary for 'multilelve'
+  Xt <- t(ec_data_red) # transpose sample x OTU matrix; necssary for 'multilelvel'
   Xlogt <- decostand(Xt,method="log")
   Xpa <- (Xt > 0)*1 # Calculate Presense Absence
   Xrel <- ec_data_red
@@ -68,7 +68,7 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   Xrellogt<-t(Xrellog)
   X <- normalize(Xrelt,byrow=TRUE) # normalizing by row (mean = 0, var = 1) with som package, not mixOmics
   
-  # Some comments on normalizatio: In mixOmics "default is PLS centers data by substracting mean of each column 
+  # Some comments on normalization: In mixOmics "default is PLS centers data by substracting mean of each column 
   # (variables) and scaling with the stdev. Result is that each column has a mean zero and a variance of 1
   # personal communication with Kim-Anh Le Cao (mixOmics developer). However, it appears that 'multilevel' 
   # procedure doesn't run w/o normalization
@@ -85,19 +85,9 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   EC_multilevel <- multilevel(X, cond = slope.molecule, sample = paired, ncomp = 3, method = 'splsda') 
   # change up "X" in multilevel to reflect transformation, etc. above 
   
-#4 -- Contribution (%) variance of factors (Y) to PLS-DA axes
-  # mostly lifed from http://perso.math.univ-toulouse.fr/mixomics/faq/numerical-outputs/
-  # not sure what "Rd" means. U are the "variates"...
-  Y <- slope # maybe this should be done one-at-a-time (e.g., slope and molecule)
-  Rd.YvsU = cor(as.numeric(as.factor(Y)),EC_multilevel$variates$X) # turns categorical vars into quantitative
-  Rd.YvsU = apply(Rd.YvsU^2, 2, sum)
-  Rd.Y = cbind(Rd.YvsU, cumsum(Rd.YvsU))
-  colnames(Rd.Y) = c("Proportion", "Cumulative")
-  Rd.Y # percent of variance explained by each component
-  
 #4 -- Variation Explained by axis
   # Calculate distance between samples (Bray Curtis or Euclidean?)
-  X.dist  <- vegdist(t(ec_data_red),method="euclidean")
+  X.dist  <- vegdist(t(ec_data_red),method="euclidean") ---> # Shouldn't this be "X"; changed and crashed....
   # Calculate distance between samples in reduced (ordination) space
   plsda.1 <- dist(EC_multilevel$variates$X[,1],method="euclidean")
   plsda.2 <- dist(EC_multilevel$variates$X[,2],method="euclidean")
@@ -106,34 +96,44 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   var1 <- cor(X.dist, plsda.1)
   var2 <- cor(X.dist, plsda.2)
   var3 <- cor(X.dist, plsda.3)
+
+#5 -- Contribution (%) variance of factors (Y) to PLS-DA axes
+  # mostly lifed from http://perso.math.univ-toulouse.fr/mixomics/faq/numerical-outputs/
+  # not sure what "Rd" means. U are the "variates"...
+  Y <- slope # maybe this should be done one-at-a-time (e.g., slope and molecule)
+  Rd.YvsU = cor(as.numeric(as.factor(Y)),EC_multilevel$variates$X) # turns categorical vars into quantitative
+  Rd.YvsU = apply(Rd.YvsU^2, 2, sum)
+  Rd.Y = cbind(Rd.YvsU, cumsum(Rd.YvsU))
+  colnames(Rd.Y) = c("Proportion", "Cumulative")
+  Rd.Y # percent of variance explained by each component
    
-#5 -- PLOTTING 
+#6 -- PLOTTING 
   points <- EC_multilevel$variates$X 
-  par(mar=c(5,5,1,1), oma=c(1,1,1,1)+0.1 )
+  par(mar=c(5,5,1,1), oma=c(1,1,1,1)+0.1 ) # plot margins, outer margin area
   plot(points[,1], points[,2], xlab="PLSDA Axis 1 ", ylab="PLSDA Axis 2", 
   xlim=c(min(points[,1])+min(points[,1])*0.1,max(points[,1])+max(points[,1])*0.1),
   ylim=c(min(points[,2])+min(points[,2])*0.1,max(points[,2])+max(points[,2])*0.1),
   pch=16, cex=2.0, type="n",xaxt="n", yaxt="n", cex.lab=1.5, cex.axis=1.2) 
-  axis(side=1, las=1)   
-  axis(side=2, las=1)    
-  abline(h=0, lty="dotted")  
-  abline(v=0, lty="dotted")
+  axis(side=1, las=1) # add x-axis ticks and labels  
+  axis(side=2, las=1) # add y-axis ticks and labels   
+  abline(h=0, lty="dotted") # add horizontal dashed line at 0 
+  abline(v=0, lty="dotted") # add vertical dashed line at 0 
   mol.shape <- rep(NA, dim(points)[1])
     for (i in 1:length(mol.shape)){
       if (molecule[i] == "DNA"){mol.shape[i] = 21}
       else {mol.shape[i] = 22}
-      }
+      } # identifies symbol shape based on molecule
   slope.color <- rep(NA, dim(points)[1])
-    for (i in 1:length(slope)){
+    for (i in 1:length(slope.color)){
       if (slope[i] == levels(slope)[1]) {slope.color[i] = "brown2"}
       else {slope.color[i] = "green3"}
-      } 
+      } # identifies symbol color based on slope; error here? slope insted of slope color?
   points(points[,1], points[,2], pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
   #text(points[,1], points[,2], row.names(points))   
   ordiellipse(cbind(points[,1], points[,2]), slope.molecule.concat, kind="sd", conf=0.95,
     lwd=2, lty=2, draw = "lines", col = "black", label=TRUE) 
    
-#6 -- Other stuff: some note and tries based on following website:
+#7 -- Other stuff: some note and tries based on following website:
   # http://perso.math.univ-toulouse.fr/mixomics/methods/spls-da/   
   # calculate the coefficients of the linear combinations
   pred <- predict(EC_multilevel, X[1:2, ])
