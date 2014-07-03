@@ -76,10 +76,18 @@ X <- normalize(Xrelt,byrow=TRUE) # normalizing by row (mean = 0, var = 1) with s
 
 X.in <- Xt    # Pick the transformation you want
 
-# Molecule and Slope (no interactin, no grouping)
+# Molecule and Slope (no interactin, no grouping) No Transformation
+Adonis.a <- adonis(t(ec_data_red) ~ design_red$molecule + design_red$slope)
+
+Adonis.b <- adonis(t(ec_data_red) ~ design_red$molecule * design_red$slope)
+
+
+# Molecule and Slope (no interactin, no grouping)  Transformation
 Adonis.a <- adonis(X ~ design_red$molecule + design_red$slope)
 
-Adonis.b <- adonis(X ~ design_red$molecules * design_red$slope)
+Adonis.b <- adonis(X ~ design_red$molecule * design_red$slope)
+
+
 
 # Using Strats
 Adonis.c <- adonis(X ~ design_red$slope, strata=design_red$molecules)
