@@ -101,6 +101,11 @@ two.way <- multilevel(X, cond = slope.molecule, sample = pair.station, ncomp = 3
 EC_multilevel <- two.way
 
 
+Xlogt <- decostand(Xt,method="log")[,which(colSums(Xlogt) !=0)]
+
+two.way <- multilevel(Xlogt, cond = slope.molecule, sample = pair.station, ncomp = 2, method = 'splsda') 
+
+EC_multilevel <- two.way
 
 
 #3 -- MULTILEVEL ANALYSIS
