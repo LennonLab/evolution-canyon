@@ -96,7 +96,9 @@ EC_multilevel <- one.way
 # Skip to #6
 
 
+two.way <- multilevel(X, cond = slope.molecule, sample = station, ncomp = 3, method = 'splsda') 
 
+EC_multilevel <- two.way
 
 
 
