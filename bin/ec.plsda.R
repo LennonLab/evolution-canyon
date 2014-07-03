@@ -86,17 +86,17 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
   station <- design_red$station
   slope.molecule <- data.frame(cbind(as.character(slope),as.character(molecule))) # Y matrix with factor 1 and 2
   slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")], sep = "")) # create unique treat ID vector
-slope.molecule <- 
-station <- 
+  pair.station <- c(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,1,1,2,2,3,3,4,4,5,5,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9)
+  station.molecule.concat <- paste(station, molecule, sep = "")
 
-one.way <- multilevel(X, cond = slope.molecule.concat, sample = station, ncomp = 3, method = 'splsda') 
+one.way <- multilevel(X, cond = slope.molecule.concat, sample = pair.station, ncomp = 3, method = 'splsda') 
 
 EC_multilevel <- one.way
 
 # Skip to #6
 
 
-two.way <- multilevel(X, cond = slope.molecule, sample = station, ncomp = 3, method = 'splsda') 
+two.way <- multilevel(X, cond = slope.molecule, sample = pair.station, ncomp = 3, method = 'splsda') 
 
 EC_multilevel <- two.way
 
@@ -163,7 +163,9 @@ EC_multilevel <- two.way
   points(points[,1], points[,2], pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
   #text(points[,1], points[,2], row.names(points))   
   ordiellipse(cbind(points[,1], points[,2]), slope.molecule.concat, kind="sd", conf=0.95,
-    lwd=2, lty=2, draw = "lines", col = "black", label=TRUE) 
+    lwd=2, lty=2, draw = "lines", col = "black", label=TRUE)
+  #ordiellipse(cbind(points[,1], points[,2]), station.molecule.concat, kind="sd", conf=0.95,
+  #  lwd=2, lty=2, draw = "lines", col = "black", label=TRUE)  
    
 #7 -- Other stuff: some note and tries based on following website:
   # http://perso.math.univ-toulouse.fr/mixomics/methods/spls-da/   
