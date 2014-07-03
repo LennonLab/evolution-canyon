@@ -80,8 +80,20 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
 # one way design following mixomics example
 # new design with slope.molecule as one column (e.g., AFDNA) and station (e.g, 1,2,5,6)
 # multilevel (X,cond=ec_desigh$slope.mol, sample=ec_design$station)
+  slope <- design_red$slope # factor 1
+  molecule <- design_red$molecule # factor 2 
+  site <- design_red$site
+  station <- design_red$station
+  slope.molecule <- data.frame(cbind(as.character(slope),as.character(molecule))) # Y matrix with factor 1 and 2
+  slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")], sep = "")) # create unique treat ID vector
+slope.molecule <- 
+station <- 
 
+one.way <- multilevel(X, cond = slope.molecule.concat, sample = station, ncomp = 3, method = 'splsda') 
 
+EC_multilevel <- one.way
+
+# Skip to #6
 
 
 
