@@ -1,13 +1,13 @@
 ################################################################################
 #                                                                              #
-#	Evolution Canyon Project: Microbial Community PcoA and PERMANOVA             #
+#	Evolution Canyon Project: Microbial Community PcoA and PERMANOVA           #
 #   Analysis of 16S rRNA sequnce run data                                      #
 #                                                                              #
 ################################################################################
 #                                                                              #
-#	Written by: Mario Muscarella & Jay Lennon                                    #
+#	Written by: Mario Muscarella & Jay Lennon                                  #
 #                                                                              #
-#	Last update: 2014/06/10                                                      #
+#	Last update: 2014/06/10                                                    #
 #                                                                              #
 ################################################################################
 
