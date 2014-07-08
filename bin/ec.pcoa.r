@@ -1,12 +1,12 @@
 ################################################################################
 #                                                                              #
-#	Evolution Canyon Project: Microbial Community PcoA and PERMANOVA             #
+#	Evolution Canyon Project: Microbial Community PcoA and PERMANOVA           #
 #                                                                              #
 ################################################################################
 #                                                                              #
-#	Written by: Mario Muscarella                                                 #
+#	Written by: Mario Muscarella                                               #
 #                                                                              #
-#	Last update: 2014/03/11                                                      #
+#	Last update: 2014/03/11                                                    #
 #                                                                              #
 ################################################################################
 
