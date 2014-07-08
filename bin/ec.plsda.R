@@ -1,12 +1,12 @@
 ################################################################################
 #                                                                              #
-#	Evolution Canyon Project: Microbial Community PL-SDA                         #
+# Evolution Canyon Project: Microbial Community PL-SDA                         #
 #                                                                              #
 ################################################################################
 #                                                                              #
-#	Written by: Jay Lennon and Mario Muscarella                                  #
+# Written by: Jay Lennon and Mario Muscarella                                  #
 #                                                                              #
-#	Last update: 2014/07/07                                                      #
+# Last update: 2014/07/07                                                      #
 #                                                                              #
 ################################################################################
 #                                                                              #
