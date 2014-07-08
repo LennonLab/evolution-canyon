@@ -29,7 +29,7 @@ ec.plsda <- function(shared = " ", design = " ", plot.title = "test"){
 #1 -- Import data (site by OTU matrix) and deal w/ "problem" samples
   ec_data <- t(read.otu(shared, "0.03")) # takes a long time (10 mins)
   design <- read.delim(design, header=T, row.names=1) 
-  # make sure design command in EC.test.r is run first 
+  # make sure design command in EC.test.r is run first --> not needed if function
  
   # Note: owing to amplification issues, we only submitted 76 of 80 samples. 
   # The four samples NOT submitted were C-1E-R, EC-2G-R, EC-2J-R, EC-6I-D
@@ -42,6 +42,7 @@ ec.plsda <- function(shared = " ", design = " ", plot.title = "test"){
   samps <- (colnames(ec_data))
   which(samps == "EC-2A-D")
   
+  # If we are going to move back to having a function, then we need to remove this stuff. It will not work with Simulation Data
   ec_data_red <- ec_data[,-c(9,20:21,24:27,32,37,74)] # removes all questionable samples and pairs
   #ec_data_red <- ec_data[,-c(9,32,37,74)] # keeps in the a priori "questionable" samples that were run
   # removes problematic samples and their pairs
@@ -53,19 +54,35 @@ ec.plsda <- function(shared = " ", design = " ", plot.title = "test"){
   # design matrix with renumbered pairs after removing problem pairs
   
 #2 -- Options for transformation, relativation, and normalization
-  Xt <- t(ec_data_red) # transpose sample x OTU matrix; necssary for 'multilelvel'
-  Xpa <- (Xt > 0)*1 # Calculate Presense Absence
+  Xt <- t(ec_data_red)[,which(colSums(ec_data_red) !=0)] # transpose sample x OTU matrix; necssary for 'multilelvel'
+  XPA <- (Xt > 0)*1 # Calculate Presense Absence
+  XREL <- ec_data_red
+	   for(i in 1:ncol(ec_data_red)){
+      XREL[,i]=ec_data_red[,i]/sum(ec_data_red[,i])
+      }
+  XPAt <- t(XPA)[,which(colSums(XPA) !=0)]
+  XRELt <- t(XREL)[,which(colSums(XREL) !=0)]
   
   # "Transformation 1": transpose and log10 transform --> for two.way.log PLSDA
-  Xt <- t(ec_data_red) 
-  Xlogt <- decostand(Xt,method="log")[,which(colSums(Xlogt) !=0)] # log transform while removign zero taxa
+  Xt <- t(ec_data_red)[,which(colSums(ec_data_red) !=0)] 
+  Xlogt <- decostand(Xt,method="log")[,which(colSums(Xt) !=0)] # log transform while removing zero taxa
   # This is the transformation that "worked" on 7/3/14
   
   # "Transformation 2": relativize, transpose, log10-transform --> for two.way.logrel PLSDA
   Xrel<-ec_data_red
-	for(i in 1:ncol(ec_data_red)){Xrel[,i]=ec_data_red[,i]/sum(ec_data_red[,i])} 
+	   for(i in 1:ncol(ec_data_red)){
+      Xrel[,i]=ec_data_red[,i]/sum(ec_data_red[,i])
+      } 
   Xrelt<-t(Xrel)
-  Xlogrelt <- decostand(Xrelt,method="log")[,which(colSums(Xlogrelt) !=0)]
+  Xlogrelt <- decostand(Xrelt,method="log")[,which(colSums(Xrelt) !=0)]
+  
+  # "Transformation 3": relativize, transpose, Hellinger-transform 
+  Xrel<-ec_data_red
+	   for(i in 1:ncol(ec_data_red)){
+      Xrel[,i]=ec_data_red[,i]/sum(ec_data_red[,i])
+      } 
+  Xrelt<-t(Xrel)
+  Xhellit <- decostand(Xrelt,method="hellinger")[,which(colSums(Xrelt) !=0)]
 
   #X <- normalize(Xrelt,byrow=TRUE) # normalizing by row (mean = 0, var = 1) with som package, not mixOmics
   # 7/7/14: don't remember details, but Mario says we don't need to do prenormalization
@@ -81,16 +98,18 @@ ec.plsda <- function(shared = " ", design = " ", plot.title = "test"){
   station <- design_red$station
   slope.molecule <- data.frame(cbind(as.character(slope),as.character(molecule))) # Y matrix with factor 1 and 2
   slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")], sep = "")) # create unique treat ID vector
-  pair.station <-c(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,1,1,2,2,3,3,4,4,5,5,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9)
+  pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:5), each=2), rep(seq(1:10), each=2), rep(seq(1:9), each=2))
+  # pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:8), each=2), rep(seq(1:10), each=10), rep(seq(1:9), each=2)) # including "questionable" data  
   station.molecule.concat <- paste(station, molecule, sep = "") # creates pairs by station
-  #pair.station <-c(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9)
-  station.molecule.concat <- paste(station, molecule, sep = "") # including "questionable" data
 
 #4 -- Run multilevel models
-  one.way <- multilevel(X, cond = slope.molecule.concat, sample = pair.station, ncomp = 3, method = 'splsda') # didn't recheck
+  one.way <- multilevel(Xt, cond = slope.molecule.concat, sample = pair.station, ncomp = 3, method = 'splsda') # didn't recheck
   two.way.log <- multilevel(Xlogt, cond = slope.molecule, sample = pair.station, ncomp = 3, method = 'splsda') # works
-  two.way.logrel <- multilevel(Xlogrelt, cond = slope.molecule, sample = pair.station, ncomp = 2, method = 'splsda') # no work
-  EC_multilevel <- two.way.log
+  two.way.logrel <- multilevel(Xlogrelt, cond = slope.molecule, sample = pair.station, ncomp = 3, method = 'splsda') # no work
+  two.way.hel <- multilevel(Xhellit, cond = slope.molecule, sample = pair.station, ncomp = 3, method = 'splsda')
+  
+  # which model do we want to graph
+  EC_multilevel <- two.way.logrel
 
 #5 -- Plot PLSDA ordination 
   points <- EC_multilevel$variates$X 
