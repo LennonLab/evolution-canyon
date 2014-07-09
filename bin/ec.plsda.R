@@ -38,7 +38,7 @@ ec.plsda <- function(shared     = " ",
                      output.dir = "./"){
 
   source("./bin/DiversityFunctions.r")  
-  require("vegan")||install.packages("vega");require("vegan")
+  require("vegan")||install.packages("vegan");require("vegan")
   require("mixOmics")||install.packages("mixOmics");require("mixOmics")
   
   #1 -- Import data (site by OTU matrix) and deal w/ "problem" samples
