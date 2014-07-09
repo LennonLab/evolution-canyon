@@ -1,98 +1,150 @@
 ################################################################################
 #                                                                              #
-#	Evolution Canyon Project: Microbial Community PL-SDA                       #
+# Evolution Canyon Project: Microbial Community PL-SDA                         #
 #                                                                              #
 ################################################################################
 #                                                                              #
-#	Written by: Jay Lennon and Mario Muscarella                                #
+# Written by: Jay Lennon and Mario Muscarella                                  #
 #                                                                              #
-#	Last update: 2014/07/07                                                    #
+# Last update: 2014/07/07                                                      #
+#                                                                              #
+################################################################################
+#                                                                              #
+# Notes: This code creates the function ec.plsda for analysis of Evolution     #
+#        Canyon simulation and emperical data                                  #
+#                                                                              #
+# Issues: Currently, this code does not work as a function for both data types #
+#                                                                              #
+# Recent Changes:                                                              #
+#         1. Calculate Variance Explained                                      #
+#         2. Confirm Normalizations                                            #
+#                                                                              #
+# Future Changes (To-Do List):                                                 #
+#         1. ID influential Taxa                                               #
+#         2. Load Taxonomy Data                                                #
+#         3. Consider Rare Taxa Removal                                        #
+#         4. Confirm Problamatic Taxa (EC-2A-D, EC-2A-R, EC-2C-R, EC-2D-R)     #
+#         5. Compare with PERMANOVA                                            #
+#         6. Paired PERMANOVA                                                  #
 #                                                                              #
 ################################################################################
 
-#### Things left to do	
-	# confirm normalization (relative recovery, log transformation)
-	# figure out how to get explained total variance for each axis --> done
-	# figure out how to identify influential taxa using loadings --> not yet
-	# load taxonomy in (see Pmeso code on github) --> getting there
-	# consider removal of rare taxa --> not yet
-	# use Stuart's PERMANOVA that accounts for paired samples --> new file?
-	# confirm these are actually "bad": EC-2A-D, EC-2A-R, EC-2C-R, EC-2D-R
-
-ec.plsda <- function(shared = " ", design = " ", plot.title = "test"){
+ec.plsda <- function(shared     = " ",
+                     design     = " ",
+                     site.rm    = " ",
+                     cond       = " ",
+                     paired     = " ",
+                     plot.title = "test",
+                     output.dir = "./"){
 
   source("./bin/DiversityFunctions.r")  
-  require(vegan)                                   
-  require(mixOmics)
-  }
+  require("vegan")||install.packages("vega");require("vegan")
+  require("mixOmics")||install.packages("mixOmics");require("mixOmics")
   
-#1 -- Import data (site by OTU matrix) and deal w/ "problem" samples
+  #1 -- Import data (site by OTU matrix) and deal w/ "problem" samples
   ec_data <- t(read.otu(shared, "0.03")) # takes a long time (10 mins)
   design <- read.delim(design, header=T, row.names=1) 
-  # make sure design command in EC.test.r is run first 
+  # make sure design command in EC.test.r is run first
  
-  # Note: owing to amplification issues, we only submitted 76 of 80 samples. 
+  # Note: owing to amplification issues, we only submitted 76 of 80 samples
   # The four samples NOT submitted were C-1E-R, EC-2G-R, EC-2J-R, EC-6I-D
   # So, removed their pairs for PLS-DA: EC-1E-D, EC-2G-D, EC-2J-D,EC-6I-R
-  # 4 samples have had crappy quality in past: EC-2A-D, EC-2A-R, EC-2C-R, EC-2D-R
-  # Remove their pairs EC-2C-D, EC-2D-R, for a total of 6 "questionable" samples
+  # 4 samples had crappy quality in past: EC-2A-D, EC-2A-R, EC-2C-R, EC-2D-R
+  # Remove pairs EC-2C-D, EC-2D-R, for a total of 6 "questionable" samples
   # Results in a total of 66 samples (14 problematics)
   # Use following code to identify columns to remove
   
+  # Remove Problamatic Samples and Pairs
+  # If we are going to move back to having a function,
+  # then we need to remove this stuff. It will not work with Simulation Data
   samps <- (colnames(ec_data))
   which(samps == "EC-2A-D")
-  
-  ec_data_red <- ec_data[,-c(9,20:21,24:27,32,37,74)] # removes all questionable samples and pairs
-  #ec_data_red <- ec_data[,-c(9,32,37,74)] # keeps in the a priori "questionable" samples that were run
-  # removes problematic samples and their pairs
-  
-  samps_red <- colnames(ec_data_red) # recover good samples from reduced dataset
+  # Remove all questionable samples and pairs
+  ec_data_red <- ec_data[,-c(9,20:21,24:27,32,37,74)]
+  # To keeps in the a priori "questionable" samples that were run:
+  # ec_data_red <- ec_data[,-c(9,32,37,74)]
+
+
+  # recover good samples from reduced dataset
+  samps_red <- colnames(ec_data_red)
   design_red <- design[samps_red,] # design matrix w/o problem samples & pairs
-  design_red$paired <- c(rep(seq(1:14), each=2), rep(seq(1:19), each=2)) 
-  #design_red$paired <- c(rep(seq(1:17), each=2), rep(seq(1:19), each=2)) # keeps questionable samples
+  design_red$paired <- c(rep(seq(1:14), each=2), rep(seq(1:19), each=2))
+  # To keep questionable samples, uncomment below
+  # design_red$paired <- c(rep(seq(1:17), each=2), rep(seq(1:19), each=2))
   # design matrix with renumbered pairs after removing problem pairs
   
-#2 -- Options for transformation, relativation, and normalization
-  Xt <- t(ec_data_red) # transpose sample x OTU matrix; necssary for 'multilelvel'
-  Xpa <- (Xt > 0)*1 # Calculate Presense Absence
+  #2 -- Options for transformation, relativation, and normalization
+  # transpose sample x OTU matrix; necssary for 'multilelvel'
+  Xt <- t(ec_data_red)[,which(colSums(ec_data_red) !=0)]
+  XPA <- (Xt > 0)*1 # Calculate Presense Absence
+  XREL <- ec_data_red
+	   for(i in 1:ncol(ec_data_red)){
+      XREL[,i]=ec_data_red[,i]/sum(ec_data_red[,i])
+      }
+  XPAt <- t(XPA)[,which(colSums(XPA) !=0)]
+  XRELt <- t(XREL)[,which(colSums(XREL) !=0)]
   
-  # "Transformation 1": transpose and log10 transform --> for two.way.log PLSDA
-  Xt <- t(ec_data_red) 
-  Xlogt <- decostand(Xt,method="log")[,which(colSums(Xlogt) !=0)] # log transform while removign zero taxa
-  # This is the transformation that "worked" on 7/3/14
+  # "Transformation 1": transpose and log10 transform, also remove zero taxa
+  Xt <- t(ec_data_red)[,which(colSums(ec_data_red) !=0)] 
+  Xlogt <- decostand(Xt,method="log")[,which(colSums(Xt) !=0)]
   
-  # "Transformation 2": relativize, transpose, log10-transform --> for two.way.logrel PLSDA
+  # "Transformation 2": relativize, transpose, log10-transform
   Xrel<-ec_data_red
-	for(i in 1:ncol(ec_data_red)){Xrel[,i]=ec_data_red[,i]/sum(ec_data_red[,i])} 
+	   for(i in 1:ncol(ec_data_red)){
+      Xrel[,i]=ec_data_red[,i]/sum(ec_data_red[,i])
+      } 
   Xrelt<-t(Xrel)
-  Xlogrelt <- decostand(Xrelt,method="log")[,which(colSums(Xlogrelt) !=0)]
+  Xlogrelt <- decostand(Xrelt,method="log")[,which(colSums(Xrelt) !=0)]
+  
+  # "Transformation 3": relativize, transpose, Hellinger-transform 
+  Xrel<-ec_data_red
+	   for(i in 1:ncol(ec_data_red)){
+      Xrel[,i]=ec_data_red[,i]/sum(ec_data_red[,i])
+      } 
+  Xrelt<-t(Xrel)
+  Xhellit <- decostand(Xrelt,method="hellinger")[,which(colSums(Xrelt) !=0)]
 
-  #X <- normalize(Xrelt,byrow=TRUE) # normalizing by row (mean = 0, var = 1) with som package, not mixOmics
-  # 7/7/14: don't remember details, but Mario says we don't need to do prenormalization
-  # Some comments on normalization: In mixOmics "default is PLS centers data by substracting mean of each column 
-  # (variables) and scaling with the stdev. Result is that each column has a mean zero and a variance of 1
-  # personal communication with Kim-Anh Le Cao (mixOmics developer). However, it appears that 'multilevel' 
-  # procedure doesn't run w/o normalization
+  #X <- normalize(Xrelt,byrow=TRUE)
+  # normalizing by row (mean = 0, var = 1) with som package, not mixOmics
+  # 7/7/14: Mario says we don't need to do prenormalization
+  # Some comments on normalization:
+  # mixOmics "default is PLS centers data by substracting mean of each column
+  # (variables) and scaling with the stdev
+  # Result is that each column has a mean zero and a variance of 1
+  # personal communication with Kim-Anh Le Cao (mixOmics developer)
+  # It appears that 'multilevel' procedure doesn't run w/o normalization
 
-#3 -- Create factors for multilevel model
+  #3 -- Create factors for multilevel model
   slope <- design_red$slope # factor 1
   molecule <- design_red$molecule # factor 2 
   site <- design_red$site
   station <- design_red$station
-  slope.molecule <- data.frame(cbind(as.character(slope),as.character(molecule))) # Y matrix with factor 1 and 2
-  slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")], sep = "")) # create unique treat ID vector
-  pair.station <-c(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,1,1,2,2,3,3,4,4,5,5,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9)
-  station.molecule.concat <- paste(station, molecule, sep = "") # creates pairs by station
-  #pair.station <-c(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9)
-  station.molecule.concat <- paste(station, molecule, sep = "") # including "questionable" data
+  slope.molecule <- data.frame(cbind(as.character(slope),
+    as.character(molecule))) # Y matrix with factor 1 and 2
+  slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")],
+    sep = "")) # create unique treat ID vector
+  pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:5), each=2),
+    rep(seq(1:10), each=2), rep(seq(1:9), each=2))
+  # To include "questionable" data uncomment the following
+  # pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:8), each=2),
+  #    rep(seq(1:10), each=10), rep(seq(1:9), each=2))
+  # Create a vector of molecules by station
+  station.molecule.concat <- paste(station, molecule, sep = "")
 
-#4 -- Run multilevel models
-  one.way <- multilevel(X, cond = slope.molecule.concat, sample = pair.station, ncomp = 3, method = 'splsda') # didn't recheck
-  two.way.log <- multilevel(Xlogt, cond = slope.molecule, sample = pair.station, ncomp = 3, method = 'splsda') # works
-  two.way.logrel <- multilevel(Xlogrelt, cond = slope.molecule, sample = pair.station, ncomp = 2, method = 'splsda') # no work
-  EC_multilevel <- two.way.log
+  #4 -- Run multilevel models
+  one.way <- multilevel(Xt, cond = slope.molecule.concat,
+    sample = pair.station, ncomp = 3, method = 'splsda')
+  two.way.log <- multilevel(Xlogt, cond = slope.molecule,
+    sample = pair.station, ncomp = 3, method = 'splsda')
+  two.way.logrel <- multilevel(Xlogrelt, cond = slope.molecule,
+    sample = pair.station, ncomp = 3, method = 'splsda')
+  two.way.hel <- multilevel(Xhellit, cond = slope.molecule,
+    sample = pair.station, ncomp = 3, method = 'splsda')
+  
+  # Indicate which model you want to graph
+  EC_multilevel <- two.way.logrel
 
-#5 -- Plot PLSDA ordination 
+  #5 -- Plot PLSDA ordination
   points <- EC_multilevel$variates$X 
   par(mar=c(5,5,1,1), oma=c(1,1,1,1)+0.1 ) # plot margins, outer margin area
   plot(points[,1], points[,2], xlab="PLSDA Axis 1 ", ylab="PLSDA Axis 2", 
@@ -115,16 +167,15 @@ ec.plsda <- function(shared = " ", design = " ", plot.title = "test"){
       } # identifies symbol color based on slope; error here? slope insted of slope.color?
   points(points[,1], points[,2], pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
   #text(points[,1], points[,2], row.names(points))   
-  ordiellipse(cbind(points[,1], points[,2]), slope.molecule.concat, kind="sd", conf=0.95,
-    lwd=2, lty=2, draw = "lines", col = "black", label=TRUE)
-  #ordiellipse(cbind(points[,1], points[,2]), station.molecule.concat, kind="sd", conf=0.95,
-  #  lwd=2, lty=2, draw = "lines", col = "black", label=TRUE)  
+  ordiellipse(cbind(points[,1], points[,2]), slope.molecule.concat, kind="sd",
+    conf=0.95, lwd=2, lty=2, draw = "lines", col = "black", label=TRUE)
+  # ordiellipse(cbind(points[,1], points[,2]), station.molecule.concat,
+  #   kind="sd", conf=0.95, lwd=2, lty=2, draw = "lines", col = "black",
+  #   label=TRUE)
 
-#6 -- Variation Explained by axis
+  #6 -- Variation Explained by axis
   # Calculate distance between samples (Bray Curtis or Euclidean?)
-  X.dist  <- vegdist(X,method="euclidean") 
-  # this goes all the way back to raw counts; not sure X is even defined: was normalized matrix
-  # Shouldn't "ec_data_red be "X"?; however, crashes R! Should this match with what we put into Multilevel?
+  X.dist  <- vegdist(Xlogrelt,method="euclidean")
   # Calculate distance between samples in reduced (ordination) space
   plsda.1 <- dist(EC_multilevel$variates$X[,1],method="euclidean")
   plsda.2 <- dist(EC_multilevel$variates$X[,2],method="euclidean")
@@ -134,7 +185,7 @@ ec.plsda <- function(shared = " ", design = " ", plot.title = "test"){
   var2 <- cor(X.dist, plsda.2)
   var3 <- cor(X.dist, plsda.3)
 
-#7 -- Contribution (%) variance of factors (Y) to PLS-DA axes
+  #7 -- Contribution (%) variance of factors (Y) to PLS-DA axes
   # mostly lifed from http://perso.math.univ-toulouse.fr/mixomics/faq/numerical-outputs/
   # not sure what "Rd" means. U are the "variates"...
   Y <- slope # maybe this should be done one-at-a-time (e.g., slope and molecule)
@@ -144,7 +195,7 @@ ec.plsda <- function(shared = " ", design = " ", plot.title = "test"){
   colnames(Rd.Y) = c("Proportion", "Cumulative")
   Rd.Y # percent of variance explained by each component
     
-#8 -- Other stuff: some note and tries based on following website:
+  #8 -- Other stuff: some note and tries based on following website:
   # http://perso.math.univ-toulouse.fr/mixomics/methods/spls-da/   
   # calculate the coefficients of the linear combinations
   pred <- predict(EC_multilevel, X[1:2, ])
