@@ -23,22 +23,22 @@ state_list = ['heterogeneous']#,'homogeneous'] # homogeneity or heterogeneity
             # among local communities local communities vary along a single 
             # environmental axis, e.g.,mean daily temp, precipitation, etc.
 
-im_list = [300]  # number of individuals immigrating
+im_list = [1]  # number of individuals immigrating
                            # from regional pool per time step
 
 
 optimas = ['neutral', 'random', 'inverse-zipf']
 
 northVals = [0.1, 0.3, 0.5]
-southVals = [0.1, 0.3, 0.5]
+southVals = [0.1, 0.3, 0.5] 
 
 time = 500
 
 for optima in optimas:
     
-    for northVal in northVals:
+    for northVal in northVals: # environmental values
         
-        for southVal in southVals:
+        for southVal in southVals: # environmental values
             
             for j, state in enumerate(state_list):
                 
