@@ -2,28 +2,18 @@ from __future__ import division
 import sys                                            
 import numpy as np
 import random
-from random import randrange
+from random import randrange, choice
 import decimal
 
 
 
-def get_optima(optima_method, optima_dict, prop):
+############### FUNCTION TO SET SPECIES UPTAKE RATES AND MAINT COST ############
+def get_param(ID, param_dict):
     
-    if optima_method == 'zipf':
-        optima = 1/prop
-          
-    elif optima_method == 'neutral':
-        optima = 0.3
-        
-    elif optima_method == 'random':
-        optima = random.randint(1,10000)/10000
-      
-    elif optima_method == 'inverse-zipf':
-        optima = 1 - (1/prop)
-
-    optima_dict[prop] = optima
+    param = np.random.uniform(0.01, 0.9)
+    param_dict[ID] = param
     
-    return [optima, optima_dict]
+    return param_dict
     
     
 
@@ -34,12 +24,11 @@ def get_SitebySpecies(COMs):
     """
     
     nABV = getNSDA(COMs[0], False) # False directs the function to only return
-    sABV = getNSDA(COMs[1], False) # the species Id-abundance vector
+    sABV = getNSDA(COMs[1], False) # the species abundance vector
     
     nmax = nABV[-1][0]
     smax = sABV[-1][0]
     maxID = max([nmax, smax]) # largest species id#
-    
     SbyS = []
     
     for COM in COMs:
@@ -52,28 +41,31 @@ def get_SitebySpecies(COMs):
                 spID = ind[0]
                 all_list[spID-1]  += 1
                 
-                if ind[1] == 'a':
+                if ind[1] == 0:
                     active_list[spID-1] += 1
             
-            SbyS.append(all_list) # DNA analogy
-            SbyS.append(active_list) # RNA analogy
+            SbyS.append(all_list) # DNA analogue
+            SbyS.append(active_list) # RNA analogue
     
-    SbyS = zip(*SbyS) # these 
-    SbyS = [list(row) for row in SbyS if any(x != 0 for x in row)]
-    SbyS = zip(*SbyS)
+    # Remove any species with 0 abundance across sites
+    SbyS = zip(*SbyS) # zip 
+    SbyS = [list(row) for row in SbyS if any(x != 0 for x in row)] # remove 0's
+    SbyS = zip(*SbyS) # un-zip
     
-    S = len(SbyS[0])
+    S = len(SbyS)
+    #print 'number sites:', len(SbyS)
+    
     if len(SbyS)%2 > 0:
-        print 'unequal number of patches'
+        print 'unequal number of sites between Active and All'
         sys.exit()
     
     siteNumbers = []
     for i in range(int(S/2)):
-        siteNumbers.extend([i+1,i+1])
+        siteNumbers.extend([i+1, i+1])
     
     for i, row in enumerate(SbyS):
-        
         name = str()
+        
         if i <= 39: name = 'north'
         else: name = 'south'
         
@@ -186,10 +178,10 @@ def getNSDA(COM, verbose=True):
     for patch in COM:
         N += len(patch)
         for i in patch:
-            if i[1] == 'd':
+            if i[1] > 0:
                 D += 1
                 Ss.append(i[0])
-            elif i[1] == 'a':
+            elif i[1] == 0:
                 A += 1
                 Ss.append(i[0])
             
@@ -215,7 +207,7 @@ def getNSDA(COM, verbose=True):
 
     
 
-def reproduction(COM, enVal):
+def reproduction(COM):
     
     """ A function to simulate reproduction in a local community.
     
@@ -227,31 +219,20 @@ def reproduction(COM, enVal):
     enVal  :  the environmental variable value of the local community. ranges 
               between 0.0 and 1.0, inclusive. """
     
-    p = randrange(len(COM)) # choose a patch from COM at random    
-    if len(COM[p]) == 0: return COM # if the patch is empty, return
-    
-    i = randrange(len(COM[p])) # choose an individual at random from patch p
-    ind = COM[p][i]
-    
-    if ind[1] == 'd':
-        return COM # dormant individuals can't reproduce
-    
-    optima = ind[2] # the species environmental optima 
-                
-    Err = np.abs(optima - enVal) # difference between species
-                                 # optima and patch environment    
-                                 # value of 0 means no disagreement.
-                                    
-    reproduce = np.random.binomial(1, Err) # higher error means
-                                           # low chance of reproducing
-    if reproduce == 1:
-        COM[p].append(COM[p][i])
-        
+    for i, patch in enumerate(COM):
+        while patch:    
+            ind = randrange(len(patch)) # choose an individual at random from patch p
+            status = patch[ind][1]
+            
+            if status == 0:
+                COM[i].append(patch[ind])
+                break
+                                  
     return COM
         
 
 
-def dormancy(COM, enVal):
+def dormancy(COM, enVal, optima_dict):
     
     """ A function to simulate the transition to or from dormancy. Here, an
     imperfect match between the environment and the species optimum can still
@@ -268,31 +249,28 @@ def dormancy(COM, enVal):
               between 0.0 and 1.0, inclusive. """
     
     p = randrange(len(COM)) # choose a patch from COM at random    
-    if len(COM[p]) == 0: return COM # if the patch is empty, return
-    
     i = randrange(len(COM[p])) # choose an individual at random from patch p
-    ind = COM[p][i]
     
-    optima = ind[2] # the species environmental optima 
+    ind = COM[p][i]
+    optima = optima_dict[ind[0]] # the species environmental optima 
     
     Err = np.abs(optima - enVal) # difference between species
                                  # optima and patch environment;   
                                  # value of 0 means no disagreement.
                                     
-    dormant = np.random.binomial(1, Err) # higher error means higher 
-                                         # chance of being dormant
-    if dormant == 1:
-        ind[1] = 'd' # give the individual a dormant status
-    else: 
-        ind[1] = 'a' # give the individual an active status
+    x = np.random.binomial(1, Err) # higher error means higher 
+                                   # chance of being dormant
     
-    COM[p][i] = ind
+    if ind[1] == 0: COM[p][i][1] = x
+    elif x == 0: COM[p][i][1] = 0
+    elif x == 1: COM[p][i][1] += 1
+    
     return COM
         
 
 
 
-def leaveORdie(COM, enVal):
+def death_emigration(COM, enVal, optima_dict, ceiling=50):
 
     """ A function to simulate death/emigration in a local community.
     
@@ -304,70 +282,83 @@ def leaveORdie(COM, enVal):
     enVal  :  the environmental variable value of the local community. ranges 
               between 0.0 and 1.0, inclusive. """
     
-    p = randrange(len(COM)) # choose a patch from COM at random    
-    if len(COM[p]) == 0: return COM # if the patch is empty, return
+    for index, patch in enumerate(COM):
+        while len(patch) > ceiling:    
+            
+            i = randrange(len(patch)) # choose an individual at random from patch p
+            ind = patch[i]
     
-    i = randrange(len(COM[p])) # choose an individual at random from patch p
-    ind = COM[p][i]
-    
-    optima = ind[2] # the species environmental optima 
-        
-    Err = np.abs(optima - enVal) # difference between species
+            optima = optima_dict[ind[0]] # the species environmental optima         
+            Err = np.abs(optima - enVal) # difference between species
                                  # optima and patch environment    
                                  # value of 0 means no disagreement.
                                         
-    buhbye = np.random.binomial(1, Err) # higher error means
+            buhbye = np.random.binomial(1, Err) # higher error means
                                         # higher chance of leaving/death
-    if buhbye == 1:
-        COM[p].pop(i)
+            if buhbye == 1:
+                patch.pop(i)
+        
+        COM[index] = patch
         
     return COM
 
 
 
-def disperse(COM1, COM2, enVal):
+def disperse(COM1, COM2, enVal, between=True):
 
     """ A function to simulate disperal between two local communities/areas.
     
-    COM1 & COM2  :  the local community; a vector of lists where each list is a patch
+    COM1 & COM2  :  the local communities; vectors of lists where each list is a patch
             and each patch contains smaller lists that represent the information
             for individuals, e.g. COM[0][0] is the zeroth individual of the 
             zeroth patch of COM.
     
-    enVal  :  the environmental variable value of the local community. ranges 
-              between 0.0 and 1.0, inclusive.    
     """
+    if between == True:
+        p = randrange(len(COM1))  # choose a patch at random from COM1
+        i = randrange(len(COM1[p])) # choose an individual at random from COM1
+        ind = COM1[p].pop(i)
     
-    p1 = randrange(len(COM1))  # choose a patch at random from COM1
-    if len(COM1[p1]) == 0: return [COM1, COM2] # if the patch is empty, return
+        p = randrange(len(COM2)) # choose a patch at random from COM2
+        COM2[p].append(ind)
+
+    elif between == False:
+        p = randrange(len(COM1))  # choose a patch at random from COM1
+        i = randrange(len(COM1[p])) # choose an individual at random from COM1
+        ind = COM1[p].pop(i)
     
-    i = randrange(len(COM1[p1])) # choose an individual at random from COM1
-    ind = COM1[p1][i]
-    
-    p2 = randrange(len(COM2))    # choose a patch at random from COM2
-    
-    optima = ind[2] # the species environmental optima 
-    
-    Err = np.abs(optima - enVal) # difference between species
-                                 # optima and patch environment;    
-                                 # value of 0 means no disagreement.
-                                        
-    dormant = np.random.binomial(1, Err) # higher error means
-                                         # higher chance of remaining dormant
-    if dormant == 1:
-        ind[1] = 'd'   # give the individual a dormant status
-    else: 
-        ind[1] = 'a'   # give the individual an active status
-    
-    COM2[p2].append(ind)
-    COM1[p1].pop(i)
-    
+        p = randrange(len(COM1)) # choose a patch at random from COM2
+        COM1[p].append(ind)
+        
     return COM1, COM2
 
 
 
+
+def immigration(COMs, optima_dict, env_optima, decay_dict, dorm_decay, im):
+    
+    for i, COM in enumerate(COMs):
         
-def microbide(imRate, num_patches, lgp, northVal, southVal, optima_method, time=500):
+        for j, site in enumerate(COM):     
+            propagules = np.random.logseries(0.9, im)  # list of propagules 
+    
+            for prop in propagules:
+            
+                if prop not in optima_dict:
+                    optima_dict = get_param(prop, optima_dict)
+            
+                if prop not in decay_dict:
+                    decay_dict = get_param(prop, decay_dict)
+                
+                COMs[i][j].append([prop, choice([0, 1])]) # 0 is active, 1 is dormant
+                                               
+                                                
+    return COMs
+              
+                            
+    
+        
+def microbide(num_patches, lgp, northVal, southVal, env_optima, dorm_decay, btn):
 
     """
     imRate  :  number individuals immigrating from the regional pool
@@ -382,60 +373,51 @@ def microbide(imRate, num_patches, lgp, northVal, southVal, optima_method, time=
     time  :  number of time steps to run simulation. Needs to be large
              enough to allow the community to reach a relatively stable state
     """
-    
-    northCOM = [list([]) for _ in range(num_patches)]
-    southCOM = [list([]) for _ in range(num_patches)]
+    time=200
+    ceil = 50 #     number of individuals per patch
     
     optima_dict = {}
+    decay_dict = {}
+    northCOM = [list([]) for _ in range(num_patches)]
+    southCOM = [list([]) for _ in range(num_patches)]
+    northCOM, southCOM = immigration([northCOM, southCOM], optima_dict,
+                                    env_optima, decay_dict, dorm_decay, ceil)
     
+    
+    im = 1 #     number of individuals immigrating per unit time
     t = 1
-    N = imRate
     while t <= time:
         
-        """ Immigration from regional pool"""
-        propagules = np.random.logseries(lgp, imRate)  # list of propagules
-        # the numbers in the list represent species ID numbers
+        """ Immigration from regional pool. At time = 1, the community patches
+        are populated with the same large number of individuals. Then a zero-sum
+        dynamic is enforced where death, immigration, emigration, etc. occur but
+        never change the abundance in a patch. The zero-sum dynamic is our way
+        of keeping patch abundance from exploding and/or drastically shrinking.
         
-        # Note: in the log-series, there are lots of 1's and few very large
-        # numbers
+        Species IDs of immigrants are chosen at random from a log-series
+        distribution, i.e., a monotonically decreasing frequency distribution.
         
-        for prop in propagules:
-            
-            northORsouth = np.random.binomial(1, 0.5) 
-            
-            if prop in optima_dict:
-                optima = optima_dict[prop]
-            
-            else: 
-                optima, optima_dict = get_optima(optima_method, optima_dict, prop)
-            
-            if northORsouth == 0:            
-                i = randrange(num_patches)
-                northCOM[i].append([prop, 'd', optima]) # add dormant individual
-                                                # to north community
-            else: 
-                i = randrange(num_patches)
-                southCOM[i].append([prop, 'd', optima]) # add individual
-                                                # to south community
+        """
         
-        for i in range(N):    
-            """ Reproduction """
-            northCOM = reproduction(northCOM, northVal)
-            southCOM = reproduction(southCOM, southVal)
+        """ Immigration """
+        northCOM, southCOM = immigration([northCOM, southCOM], optima_dict,
+                                    env_optima, decay_dict, dorm_decay, im)
+    
+        """ Reproduction """
+        northCOM = reproduction(northCOM)
+        southCOM = reproduction(southCOM)
             
-            """ Dormancy """
-            northCOM = dormancy(northCOM, northVal)
-            southCOM = dormancy(southCOM, southVal)
+        """ Dormancy """
+        northCOM = dormancy(northCOM, northVal, optima_dict)
+        southCOM = dormancy(southCOM, southVal, optima_dict)
+        
+        """ Between patch dispersal """
+        northCOM, southCOM = disperse(northCOM, southCOM, southVal, btn)
+        southCOM, northCOM = disperse(southCOM, northCOM, northVal, btn)    
             
-            """ Emigration/Death """
-            northCOM = leaveORdie(northCOM, northVal)
-            southCOM = leaveORdie(southCOM, southVal)
-            
-            """ Between patch dispersal """
-            northORsouth = np.random.binomial(1, 0.5)
-            if northORsouth == 1:    
-                northCOM, southCOM = disperse(northCOM, southCOM, southVal)
-            else: southCOM, northCOM = disperse(southCOM, northCOM, northVal)
+        """ Emigration & Death """
+        northCOM = death_emigration(northCOM, northVal, optima_dict, ceil)
+        southCOM = death_emigration(southCOM, southVal, optima_dict, ceil)
             
         t += 1
         
@@ -450,5 +432,6 @@ def microbide(imRate, num_patches, lgp, northVal, southVal, optima_method, time=
         
         BC = Bray_Curtis(nABV, sABV)
         print 'time:',t, 'Bray-Curtis as percent similarity',BC, '\n'
-        
+    
+    #print 'number of sites in north and south:',len(northCOM), len(southCOM)    
     return [northCOM, southCOM]
