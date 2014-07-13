@@ -26,18 +26,23 @@
 # Setup Work Environment
 rm(list=ls())
 setwd("~/GitHub/evolution-canyon")
-source("./bin/DiversityFunctions.r")
+source("./bin/DiversityFunctions.R")
 
 se <- function(x, ...){sd(x, ...)/sqrt(length(x))}
 
 # Define Inputs and Parameters
 design <- "./data/design.txt"
-shared <- "./mothur/EC.bac.final.shared"
-cutoff <- "0.03"
+shared <- "./mothur/EC.bac.final.shareSd"
+level <- "0.03"
 size   <- 10000
 
 # Import Design File
 design <- read.delim(design, header=T, row.names=1)
+design <- 
+slope.molecule <- data.frame(cbind(as.character(design$slope),
+  as.character(design$molecule))) # Y matrix with factor 1 and 2
+slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")],
+  sep = "")) # create unique treat ID vector
 
 # Calculate Sampling Depth & Coverage
 counts <- count.groups(read.otu(shared, cutoff = level))
@@ -53,27 +58,21 @@ shan <- round(diversity.iter(input = shared, index = "shannon",
 
 # Richness Summary
 rich_data <- merge(design, rich, by="row.names")
-rich_data$mean <- round(apply(rich_data[3:26], 1, mean, na.rm = TRUE),3)
-rich_data$se <- round(apply(rich_data[3:26], 1, se, na.rm = TRUE), 3)
-rich_data$Design <- design$Treatment
-rich_data$Design <- factor(rich_data$Design,
-  levels = c('Ctrl', 'SRP', 'AEP', 'ATP', 'Phyt', 'Mix'))
+rich_data$mean <- round(apply(rich_data[1:76], 1, mean, na.rm = TRUE),3)
+rich_data$se <- round(apply(rich_data[1:76], 1, se, na.rm = TRUE), 3)
+rich_data$Design <- slope.molecule.concat
 
 # Evenness Summary
 even_data <- merge(design, even, by="row.names")
 even_data$mean <- round(apply(even_data[3:26], 1, mean, na.rm = TRUE),3)
 even_data$se <- round(apply(even_data[3:26], 1, se, na.rm = TRUE),3)
-even_data$Design <- design$Treatment
-even_data$Design <- factor(even_data$Design,
-  levels = c('Ctrl', 'SRP', 'AEP', 'ATP', 'Phyt', 'Mix'))
+even_data$Design <- slope.molecule.concat
 
 # Shannon Diversity Summary
 shan_data <- merge(design, shan, by="row.names")
 shan_data$mean <- round(apply(shan_data[3:26], 1, mean, na.rm = TRUE),3)
 shan_data$se <- round(apply(shan_data[3:26], 1, se, na.rm = TRUE),3)
-shan_data$Design <- design$Treatment
-shan_data$Design <- factor(shan_data$Design,
-  levels = c('Ctrl', 'SRP', 'AEP', 'ATP', 'Phyt', 'Mix'))
+shan_data$Design <- slope.molecule.concat
 
 # Plot Parameters
 windows.options(width=6, height=12)
