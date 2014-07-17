@@ -6,15 +6,14 @@ from random import randrange, choice
 import decimal
 
 
+""" Core functions for Evolution Canyon Project modeling """
 
-############### FUNCTION TO SET SPECIES UPTAKE RATES AND MAINT COST ############
 def get_param(ID, param_dict):
-    
+    """ A function to set species specific parameter values """
     param = np.random.uniform(0.01, 0.9)
     param_dict[ID] = param
     
     return param_dict
-    
     
 
 def get_SitebySpecies(COMs):
