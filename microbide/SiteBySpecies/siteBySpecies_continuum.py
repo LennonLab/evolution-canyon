@@ -15,7 +15,6 @@ import coreFunctions as cf
 """
 
 num_patches = 20 # number of patches in each local community
-
 lgp = 0.99 # log-series parameter, typically approaches 1 for ecological
            # communities. represents underlying structure of regional pool
 
@@ -23,16 +22,13 @@ state_list = ['heterogeneous']#,'homogeneous'] # homogeneity or heterogeneity
             # among local communities local communities vary along a single 
             # environmental axis, e.g.,mean daily temp, precipitation, etc.
 
-im_list = [1]  # number of individuals immigrating
-                           # from regional pool per time step
-
-
+im_list = [1]  # number of individuals immigrating from regional pool
 optimas = ['neutral', 'random', 'inverse-zipf']
 
 northVals = [0.1, 0.3, 0.5]
 southVals = [0.1, 0.3, 0.5] 
-
 time = 500
+
 
 for optima in optimas:
     
