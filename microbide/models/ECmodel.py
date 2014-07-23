@@ -1,5 +1,7 @@
 from __future__ import division 
 from random import choice, randrange, sample
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt 
 import numpy as np
 import scipy as sc
