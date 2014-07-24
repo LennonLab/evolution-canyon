@@ -182,32 +182,6 @@ ec.plsda <- function(shared     = " ",
     pt.lwd=2, col="black", pt.bg=c("brown", "green3", "brown", 
     "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=1.5, pt.cex=2)
 
-
-
-  #7 -- Contribution (%) variance of factors (Y) to PLS-DA axes
-  # mostly lifed from http://perso.math.univ-toulouse.fr/mixomics/faq/numerical-outputs/
-  # not sure what "Rd" means. U are the "variates"...
-  #slope <- plsda$EC_multilevel$name.condition
-  #molecule <- plsda$EC_multilevel$name.time
-  #Rd.YvsU = cor(as.numeric(as.factor(molecule)),plsda$EC_multilevel$variates$X) # turns categorical vars into quantitative
-  #Rd.YvsU = apply(Rd.YvsU^2, 2, sum)
-  #Rd.Y = cbind(Rd.YvsU, cumsum(Rd.YvsU))
-  #colnames(Rd.Y) = c("Proportion", "Cumulative")
-  #Rd.Y # percent of variance explained by each component
-    
-  #8 -- Other stuff: some note and tries based on following website:
-  # http://perso.math.univ-toulouse.fr/mixomics/methods/spls-da/   
-  # calculate the coefficients of the linear combinations
-  #pred <- predict(EC_multilevel, X[1:2, ])
-  #pred$B.hat
-  # calculate R2 and Q2 values for sPLS-DA?
-  # Q2 = "Q2 is the square of the correlation between the actual and predicted response"
-  # warning = this is memory intenstive, but didn't crash
-  #val <- valid(plsda, criterion = c("R2", "Q2"))
-  
-  #return(val)
-
-
   }
   
   
