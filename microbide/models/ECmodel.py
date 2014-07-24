@@ -414,7 +414,7 @@ def microbide(combo, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
     oDict, dDict, COM = [ {}, {}, [] ]
     COM = immigration(COM, oDict, dDict, 2*10**6)
     
-    for t in range(10**5):
+    for t in range(4*10**6):
         
         """ Immigration """
         x = np.random.binomial(1, 0.2)
