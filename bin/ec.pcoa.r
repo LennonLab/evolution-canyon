@@ -81,12 +81,12 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
       }
   slope.color <- rep(NA, dim(pcoap)[1])
     for (i in 1:length(slope.color)){
-      if (pcoap$slope[i] == levels(pcoap$slope)[1]) {slope.color[i] = "brown2"}
+      if (pcoap$slope[i] == levels(pcoap$slope)[1]) {slope.color[i] = "brown"}
       else {slope.color[i] = "green3"}
       } 
   points(pcoap$V2, pcoap$V1, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)   
-  ordiellipse(cbind(pcoap$V2, pcoap$V1), pcoap$site, kind="sd", conf=0.95,
-    lwd=2, lty=0, draw = "lines", col = "black", label=TRUE)
+  ordiellipse(cbind(pcoap$V2, pcoap$V1), pcoap$slope.molecule, kind="sd", conf=0.95,
+    lwd=2, lty=3, draw = "lines", col = "black", label=TRUE)
   # legend("topleft", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""), 
   #   paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""), 
   #   paste("Active; ",levels(pcoap$slope)[1]," Slope", sep=""),
@@ -100,7 +100,7 @@ ec.pcoa <- function(shared = " ", design = " ", plot.title = "test"){
     paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""), 
     paste("Active; ",levels(pcoap$slope)[1]," Slope", sep=""),
     paste("Active; ",levels(pcoap$slope)[2]," Slope", sep="")), 
-    pt.lwd=2, col="black", pt.bg=c("brown2", "green3", "brown2", 
+    pt.lwd=2, col="black", pt.bg=c("brown", "green3", "brown", 
     "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=1.5, pt.cex=2)
     
     
