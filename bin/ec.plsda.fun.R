@@ -39,7 +39,10 @@ ec.plsda <- function(shared     = " ",
   
   # Import Data (Site by OTU Matrix)
   ec_data <- t(read.otu(shared, cutoff))
-  design  <- read.delim(design, header=T, row.names=1) 
+  design  <- read.delim(design, header=T, row.names=1)
+  
+  # Remove OTUs with <2 individuals
+  ec_data <- ec_data[which(rowSums(ec_data) >= 2),]
   
   # Data Transformation: Relativize, Transpose, Log10-Transform
   Xrel     <- ec_data
@@ -180,7 +183,7 @@ ec.plsda <- function(shared     = " ",
     paste("Active; ",levels(slope.molecule[,1])[1]," Slope", sep=""),
     paste("Active; ",levels(slope.molecule[,1])[2]," Slope", sep="")), 
     pt.lwd=2, col="black", pt.bg=c("brown", "green3", "brown", 
-    "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=1.5, pt.cex=2)
+    "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=1.2, pt.cex=2)
 
   }
   
