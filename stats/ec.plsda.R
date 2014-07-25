@@ -137,7 +137,7 @@ ec.plsda <- function(shared     = " ",
   two.way.log <- multilevel(Xlogt, cond = slope.molecule,
     sample = pair.station, ncomp = 3, method = 'splsda')
   two.way.logrel <- multilevel(Xlogrelt, cond = slope.molecule,
-    sample = pair.station, ncomp = 3, method = 'splsda')
+    sample = pair.station, ncomp = 2, method = 'splsda')
   two.way.hel <- multilevel(Xhellit, cond = slope.molecule,
     sample = pair.station, ncomp = 3, method = 'splsda')
   
@@ -188,7 +188,7 @@ ec.plsda <- function(shared     = " ",
   #7 -- Contribution (%) variance of factors (Y) to PLS-DA axes
   # mostly lifed from http://perso.math.univ-toulouse.fr/mixomics/faq/numerical-outputs/
   # not sure what "Rd" means. U are the "variates"...
-  Y <- slope # maybe this should be done one-at-a-time (e.g., slope and molecule)
+  Y <- molecule # maybe this should be done one-at-a-time (e.g., slope and molecule)
   Rd.YvsU = cor(as.numeric(as.factor(Y)),EC_multilevel$variates$X) # turns categorical vars into quantitative
   Rd.YvsU = apply(Rd.YvsU^2, 2, sum)
   Rd.Y = cbind(Rd.YvsU, cumsum(Rd.YvsU))
@@ -198,13 +198,20 @@ ec.plsda <- function(shared     = " ",
   #8 -- Other stuff: some note and tries based on following website:
   # http://perso.math.univ-toulouse.fr/mixomics/methods/spls-da/   
   # calculate the coefficients of the linear combinations
-  pred <- predict(EC_multilevel, X[1:2, ])
+
+
+  two.way.logrel <- multilevel(Xlogrelt, cond = slope.molecule,
+    sample = pair.station, ncomp = 2, method = 'splsda')
+  
+  ec_splsda <- spls(Xlogrelt, model.matrix(~ X1 + X2 - 1, slope.molecule), ncomp = 2)
+  
+  pred <- predict(EC_multilevel, EC_multilevel$X[1:2, ])
   pred$B.hat
   # calculate R2 and Q2 values for sPLS-DA?
   # Q2 = "Q2 is the square of the correlation between the actual and predicted response"
   # warning = this is memory intenstive, but didn't crash
   val <- valid(EC_multilevel, criterion = c("R2", "Q2"))
-  
+  val <- valid(EC_multilevel, validation = "loo")
   
 
   
