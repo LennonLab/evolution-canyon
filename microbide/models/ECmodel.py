@@ -1,15 +1,18 @@
-from __future__ import division 
-from random import choice, randrange, sample
-import matplotlib.pyplot as plt 
-import numpy as np
-import scipy as sc
-from scipy import stats
-from scipy.stats import gaussian_kde, sem
-import sys, csv
+from __future__ import division  # solves division problems  
+from random import choice, randrange, sample  # functions for random sampling
+import matplotlib.pyplot as plt # plotting library
+import numpy as np # scientific computing library
+import scipy as sc # another scientific computing library
+from scipy import stats # statistical computing library
+from scipy.stats import gaussian_kde, sem # 
+import sys, csv # functions to handle externel control and csv files
 
-#sys.path.append("/Users/lisalocey/Desktop/evolution-canyon/microbide/models/coreFunctions")
-#import coreFunctions as cf
 
+
+
+path = '/Users/lisalocey/Desktop/evolution-canyon/microbide/SbyS/'
+
+""" go to line 500 to get past the function definitions """
 
 def get_kdens(summands): # Finds the kernel density function across a sample
     
@@ -236,7 +239,7 @@ def ECfig(combo):
     envDiff, enterD, exitD = combo    
                 
     n = 1 * 10**4
-    envDiff = 'differ'
+    #envDiff = 'differ' # These two statement are used for informal testing
     envDiff = 'same'
     
     Alpha, Beta = 10, 2
@@ -275,9 +278,9 @@ def ECfig(combo):
     Sverts = sample(Sverts, 10)
     Sverts = np.array(Sverts)
     
-    NRowXs = [0.04, 0.08, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32, 0.36, 0.4] 
-    NRow1Ys = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55] 
-    NRow2Ys = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85] 
+    NRowXs = [0.05, 0.15] 
+    NRow1Ys = [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95] 
+    NRow2Ys = [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95] 
     								
     for i, val in enumerate(NRowXs):
         plt.plot(NRowXs[i], NRow1Ys[i],'ms', markersize=15, zorder=100, alpha=0.5)
@@ -312,7 +315,7 @@ def ECfig(combo):
     
             
     # A SECOND PLOT
-    ax = fig.add_subplot(2, 1, 2)
+    fig.add_subplot(2, 1, 2)
     
     if envDiff == 'differ':
         DN = get_kdens(Nx)
@@ -337,63 +340,62 @@ def ECfig(combo):
     #plt.savefig('/Users/lisalocey/Desktop/EC_'+envDiff+'.png', 
     #dpi=600,bbox_inches='tight',pad_inches=0.1)
     
-    #plt.subplots_adjust( wspace=0.0, hspace=0.4)
-    #plt.show()    
+    plt.subplots_adjust( wspace=0.0, hspace=0.4)
+    plt.show()    
     
-    #sys.exit()
+    sys.exit()
     return [fig, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
                 SRow2Ys, Ncounts, Nverts, Scounts, Sverts]
     
-fig = plt.figure()
 
 
-###########################  GET CONDITIONS  ################################### 
-
-""" Code to runs the microbide model and generates site-by-species matrices."""
-
-num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
-lgp = 0.92 # log-series parameter; underlying structure of regional pool
-
-conditions = [['same', 'rand', 'rand'],  
-             ['differ', 'rand', 'rand'],
-             ['same',  'env',  'env'],
-             ['differ', 'rand', 'env'],
-             ['differ', 'env',  'rand'],
-             ['differ',  'env', 'env']]
-             
-""" conditions is a list of modeling parameters for different conceptual 
-    predictions representing extreme ends of a continuum of possible differences
-    in environment and whether entering and exiting from dormancy has a
-    stochastic component
+def get_landscape(combo):
     
-    Conditions for...
-        Conceptual prediction 1: 
-            Environments have the same effect
-            Exiting and entering dormancy has a large stochastic component 
+    envDiff, enterD, exitD = combo                
+    n = 1 * 10**4 # size of sample to be draw from a beta distribution
     
-        Conceptual prediction 2.
-            Environments have different effects. 
-            Exiting and entering dormancy has a large stochastic component
+    #envDiff = 'differ' # These two statement are used for informal testing
+    #envDiff = 'same'
     
-        Conceptual prediction 3.
-            Environments have the same effect
-            Exiting and entering dormancy is environmental
+    Alpha, Beta = 10, 2
+    Nx = np.random.beta(Alpha, Beta, n).tolist()
+    Nx = filter(lambda a: a >= 0.5, Nx)
+    Sx = np.random.beta(Beta, Alpha, n).tolist()
+    Sx = filter(lambda a: a <= 0.5, Sx)
+        
+    Ny = np.random.uniform(0, 1, len(Nx)).tolist()
+    Sy = np.random.uniform(0, 1, len(Sx)).tolist()
     
-        Conceptual prediction 4.
-            Environments have different effects. 
-            Entering dormancy has a large stochastic component 
-            Exiting dormnancy is environmental
+    if envDiff == 'differ':
+        imageN = plt.hexbin(Nx, Ny, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlOrBr, alpha=0.6)
+        imageS = plt.hexbin(Sx, Sy, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlGn, alpha=0.6)
     
-        Conceptual prediction 5.
-            Environments have different effects. 
-            Entering is environmental
-            Exiting dormancy has a large stochastic component
-            
-        Conceptual prediction 6.
-            Environments have different effects. 
-            Entering is environmental, Exiting is environmental
+    elif envDiff == 'same':
+        imageN = plt.hexbin(Nx, Ny, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlGn, alpha=0.6)
+        imageS = plt.hexbin(Sx, Sy, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlGn, alpha=0.6)
+                
+    Ncounts = imageN.get_array()
+    Nverts = imageN.get_offsets()
+    Nverts = sample(Nverts, 10)
+    Nverts = np.array(Nverts)
     
-"""
+    Scounts = imageS.get_array()
+    Sverts = imageS.get_offsets()
+    Sverts = sample(Sverts, 10)
+    Sverts = np.array(Sverts)
+    
+    NRowXs = [0.04, 0.08, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32, 0.36, 0.4] 
+    NRow1Ys = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55] 
+    NRow2Ys = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85] 
+    								
+    SRowXs = [0.62, 0.66, 0.7, 0.74, 0.78, 0.82, 0.86, 0.90, 0.94, 0.98] 
+    SRow1Ys = list(NRow1Ys)
+    SRow1Ys.reverse()
+    SRow2Ys = list(NRow2Ys)
+    SRow2Ys.reverse()
+    								
+    return [[NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys],
+                [SRow2Ys, Ncounts, Nverts, Scounts, Sverts]]
 
 
 ######################### COMMUNITY SIMULATION FUNCTION ########################
@@ -496,15 +498,70 @@ def microbide(combo, fig, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
     
     return COM    
 
-        
+
     
+###########################  GET CONDITIONS  ################################### 
+
+""" Code to runs the microbide model and generates site-by-species matrices."""
+
+num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
+lgp = 0.92 # log-series parameter; underlying structure of regional pool
+
+conditions = [['same', 'rand', 'rand'],  
+             ['differ', 'rand', 'rand'],
+             ['same',  'env',  'env'],
+             ['differ', 'rand', 'env'],
+             ['differ', 'env',  'rand'],
+             ['differ',  'env', 'env']]
+             
+""" conditions is a list of modeling parameters for different conceptual 
+    predictions representing extreme ends of a continuum of possible differences
+    in environment and whether entering and exiting from dormancy has a
+    stochastic component
+    
+    Conditions for...
+        Conceptual prediction 1: 
+            Environments have the same effect
+            Exiting and entering dormancy has a large stochastic component 
+    
+        Conceptual prediction 2.
+            Environments have different effects. 
+            Exiting and entering dormancy has a large stochastic component
+    
+        Conceptual prediction 3.
+            Environments have the same effect
+            Exiting and entering dormancy is environmental
+    
+        Conceptual prediction 4.
+            Environments have different effects. 
+            Entering dormancy has a large stochastic component 
+            Exiting dormnancy is environmental
+    
+        Conceptual prediction 5.
+            Environments have different effects. 
+            Entering is environmental
+            Exiting dormancy has a large stochastic component
+            
+        Conceptual prediction 6.
+            Environments have different effects. 
+            Entering is environmental, Exiting is environmental
+    
+"""    
+   
 ####################  GENERATE SITE BY SPECIES DATA  ###########################
 for ic, combo in enumerate(conditions):
     
     envDiff, enterD, exitD = combo 
-    fig, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys, SRow2Ys, Ncounts, Nverts, Scounts, Sverts =  ECfig(combo) # characterizing landscape
+    #landscapeLists = ECfig(combo) # characterizing landscape
+    #NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
+    #SRow2Ys, Ncounts, Nverts, Scounts, Sverts = landscapeLists[1]
 
-    COM = microbide(combo, fig, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
+    landscapeLists = get_landscape(combo) # characterizing the landscape
+    NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
+    SRow2Ys, Ncounts, Nverts, Scounts, Sverts = landscapeLists[1]
+
+
+    COM = microbide(combo, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
                             SRow2Ys, Ncounts, Nverts, Scounts, Sverts, ic)
                             # run the model & return the communities
     
@@ -526,13 +583,12 @@ for ic, combo in enumerate(conditions):
             sys.exit()
         
         r1 = r2
-                                        
-    path = '/Users/lisalocey/Desktop/evolution-canyon/microbide/SbyS/'
-    fileName = 'Condition'+str(ic+1)
 
+                                                                                
+    fileName = 'Condition'+str(ic+1)
     OUT = open(path + fileName + '.txt','w')
     writer = csv.writer(OUT, delimiter='\t')
-                    
+                                        
     linedata = ['label', 'Group', 'numOtus']
     for i in range(S):
         linedata.append('Otu'+str(i))
