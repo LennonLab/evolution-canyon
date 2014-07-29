@@ -9,9 +9,10 @@ from scipy import stats
 from scipy.stats import gaussian_kde, sem
 import sys, csv
 
-#sys.path.append("/Users/lisalocey/Desktop/evolution-canyon/microbide/models/coreFunctions")
-#import coreFunctions as cf
 
+path = '~Desktop/evolution-canyon/microbide/SbyS/'
+
+""" go to line 500 to get past the function definitions """
 
 def get_kdens(summands): # Finds the kernel density function across a sample
     
@@ -238,8 +239,8 @@ def ECfig(combo):
     envDiff, enterD, exitD = combo    
                 
     n = 1 * 10**4
-    envDiff = 'differ'
-    envDiff = 'same'
+    envDiff = 'differ' # These two statement are used for informal testing
+    #envDiff = 'same'
     
     Alpha, Beta = 10, 2
     Nx = np.random.beta(Alpha, Beta, n).tolist()
@@ -250,20 +251,124 @@ def ECfig(combo):
     Ny = np.random.uniform(0, 1, len(Nx)).tolist()
     Sy = np.random.uniform(0, 1, len(Sx)).tolist()
     
-    #fig = plt.figure()
-    #ax = fig.add_subplot(2, 1, 1)
+    fig = plt.figure()
+    ax = fig.add_subplot(2, 1, 1)
     
     if envDiff == 'differ':
-        #plt.hexbin(Nx, Ny, mincnt=0, cmap=plt.cm.jet, gridsize = 20, alpha=0.4)
-        #plt.hexbin(Sx, Sy, mincnt=0, cmap=plt.cm.jet, gridsize = 20, alpha=0.4)
+        plt.hexbin(Nx, Ny, mincnt=0, cmap=plt.cm.jet, gridsize = 20, alpha=0.4)
+        plt.hexbin(Sx, Sy, mincnt=0, cmap=plt.cm.jet, gridsize = 20, alpha=0.4)
     
         imageN = plt.hexbin(Nx, Ny, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlOrBr, alpha=0.6)
         imageS = plt.hexbin(Sx, Sy, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlGn, alpha=0.6)
     
     elif envDiff == 'same':
-        #plt.hexbin(Nx, Ny, mincnt=0, cmap=plt.cm.jet, gridsize = 20, alpha=0.4)
-        #plt.hexbin(Sx, Sy, mincnt=0, cmap=plt.cm.jet, gridsize = 20, alpha=0.4)
+        plt.hexbin(Nx, Ny, mincnt=0, cmap=plt.cm.jet, gridsize = 20, alpha=0.4)
+        plt.hexbin(Sx, Sy, mincnt=0, cmap=plt.cm.jet, gridsize = 20, alpha=0.4)
         
+        imageN = plt.hexbin(Nx, Ny, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlGn, alpha=0.6)
+        imageS = plt.hexbin(Sx, Sy, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlGn, alpha=0.6)
+                
+    Ncounts = imageN.get_array()
+    Nverts = imageN.get_offsets()
+    Nverts = sample(Nverts, 10)
+    Nverts = np.array(Nverts)
+    
+    Scounts = imageS.get_array()
+    Sverts = imageS.get_offsets()
+    Sverts = sample(Sverts, 10)
+    Sverts = np.array(Sverts)
+    
+    NRowXs = [0.05, 0.15]   
+    NRow1Ys = [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95] 
+    NRow2Ys = [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95] 
+    								
+    for i, val in enumerate(NRowXs):
+        plt.plot(NRowXs[i], NRow1Ys[i],'ms', markersize=15, zorder=100, alpha=0.5)
+        plt.plot(NRowXs[i], NRow2Ys[i],'ms', markersize=15, zorder=100, alpha=0.5)
+  		
+    SRowXs = [0.62, 0.66, 0.7, 0.74, 0.78, 0.82, 0.86, 0.90, 0.94, 0.98] 
+    SRow1Ys = list(NRow1Ys)
+    SRow1Ys.reverse()
+    SRow2Ys = list(NRow2Ys)
+    SRow2Ys.reverse()
+    			
+    					
+    for i, val in enumerate(SRowXs):
+        plt.plot(SRowXs[i], SRow1Ys[i],'ms', markersize=15, zorder=100, alpha=0.5)
+        plt.plot(SRowXs[i], SRow2Ys[i],'ms', markersize=15, zorder=100, alpha=0.5)
+    
+    plt.xlim(0, 1)
+    plt.ylim(0, 1)
+    
+    plt.ylabel('West to East', fontsize=16)
+    plt.xlabel('South                                               North', fontsize=14)
+    
+    if envDiff == 'differ':
+        title = 'Birds-eye view of the environmental landscape related to mesic (green)'
+        title += '\n& xeric (brown) conditions. Each side has 10 plots in 2 rows.'
+        plt.title(title, fontsize=13)
+
+    if envDiff == 'same':
+        title = 'Birds-eye view of the environmental landscape related to mesic (green)'
+        title += '\n conditions. Each side of the simulated area has 10 plots in 2 rows.'
+        plt.title(title, fontsize=13)
+    
+            
+    # A SECOND PLOT
+    ax = fig.add_subplot(2, 1, 2)
+    
+    if envDiff == 'differ':
+        DN = get_kdens(Nx)
+        plt.plot(DN[0], DN[1], color = 'brown', lw=3, label= 'North', alpha=0.5)
+        plt.fill_between(DN[0], DN[1], 0, color = 'brown', alpha = 0.3)
+                
+    DS = get_kdens(Sx)
+    plt.plot(DS[0], DS[1], color = 'green', lw=3, label = 'South', alpha=0.5)
+    plt.fill_between(DS[0], DS[1], 0, color = 'green', alpha = 0.3)
+    
+    plt.xlabel('Environmental Condition', fontsize=12)
+    plt.ylabel('Frequency', fontsize=12)
+    
+    txt =  'Distribution(s) of environmental optima among species. A species\'\n'
+    txt += 'optima determines the individual probaiblity of reproduction,\n'
+    txt += 'death, and transitions into and out of dormancy.'
+    
+    plt.xlim(0, 1)
+    plt.ylim(0, 8)
+    plt.text(0.05, 5.2, txt, fontsize=12)
+    
+    #plt.savefig('/Users/lisalocey/Desktop/EC_'+envDiff+'.png', 
+    #dpi=600,bbox_inches='tight',pad_inches=0.1)
+    
+    plt.subplots_adjust( wspace=0.0, hspace=0.4)
+    plt.show()    
+    
+    return [NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
+                SRow2Ys, Ncounts, Nverts, Scounts, Sverts]
+    
+
+def get_landscape(combo):
+    
+    envDiff, enterD, exitD = combo                
+    n = 1 * 10**4 # size of sample to be draw from a beta distribution
+    
+    #envDiff = 'differ' # These two statement are used for informal testing
+    #envDiff = 'same'
+    
+    Alpha, Beta = 10, 2
+    Nx = np.random.beta(Alpha, Beta, n).tolist()
+    Nx = filter(lambda a: a >= 0.5, Nx)
+    Sx = np.random.beta(Beta, Alpha, n).tolist()
+    Sx = filter(lambda a: a <= 0.5, Sx)
+        
+    Ny = np.random.uniform(0, 1, len(Nx)).tolist()
+    Sy = np.random.uniform(0, 1, len(Sx)).tolist()
+    
+    if envDiff == 'differ':
+        imageN = plt.hexbin(Nx, Ny, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlOrBr, alpha=0.6)
+        imageS = plt.hexbin(Sx, Sy, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlGn, alpha=0.6)
+    
+    elif envDiff == 'same':
         imageN = plt.hexbin(Nx, Ny, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlGn, alpha=0.6)
         imageS = plt.hexbin(Sx, Sy, mincnt=0, gridsize = 20, bins = 'log', cmap=plt.cm.YlGn, alpha=0.6)
                 
@@ -281,128 +386,17 @@ def ECfig(combo):
     NRow1Ys = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55] 
     NRow2Ys = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85] 
     								
-    #for i, val in enumerate(NRowXs):
-    #    plt.plot(NRowXs[i], NRow1Ys[i],'ms', markersize=15, zorder=100, alpha=0.5)
-    #    plt.plot(NRowXs[i], NRow2Ys[i],'ms', markersize=15, zorder=100, alpha=0.5)
-  		
     SRowXs = [0.62, 0.66, 0.7, 0.74, 0.78, 0.82, 0.86, 0.90, 0.94, 0.98] 
     SRow1Ys = list(NRow1Ys)
     SRow1Ys.reverse()
     SRow2Ys = list(NRow2Ys)
     SRow2Ys.reverse()
-    			
-    					
-    #for i, val in enumerate(SRowXs):
-    #    plt.plot(SRowXs[i], SRow1Ys[i],'ms', markersize=15, zorder=100, alpha=0.5)
-    #    plt.plot(SRowXs[i], SRow2Ys[i],'ms', markersize=15, zorder=100, alpha=0.5)
-    
-    #plt.xlim(0, 1)
-    #plt.ylim(0, 1)
-    
-    #plt.ylabel('West to East', fontsize=16)
-    #plt.xlabel('South                                               North', fontsize=14)
-    
-    #if envDiff == 'differ':
-    #    title = 'Birds-eye view of the environmental landscape related to mesic (green)'
-    #    title += '\n& xeric (brown) conditions. Each side has 10 plots in 2 rows.'
-    #    plt.title(title, fontsize=13)
-
-    #if envDiff == 'same':
-    #    title = 'Birds-eye view of the environmental landscape related to mesic (green)'
-    #    title += '\n conditions. Each side of the simulated area has 10 plots in 2 rows.'
-    #    plt.title(title, fontsize=13)
-    
-            
-    # A SECOND PLOT
-    #ax = fig.add_subplot(2, 1, 2)
-    
-    #if envDiff == 'differ':
-    #    DN = get_kdens(Nx)
-    #    plt.plot(DN[0], DN[1], color = 'brown', lw=3, label= 'North', alpha=0.5)
-    #    plt.fill_between(DN[0], DN[1], 0, color = 'brown', alpha = 0.3)
-    #            
-    #DS = get_kdens(Sx)
-    #plt.plot(DS[0], DS[1], color = 'green', lw=3, label = 'South', alpha=0.5)
-    #plt.fill_between(DS[0], DS[1], 0, color = 'green', alpha = 0.3)
-    
-    #plt.xlabel('Environmental optima', fontsize=12)
-    #plt.ylabel('Frequency', fontsize=12)
-    
-    #txt =  'Distribution(s) of environmental optima among species. A species\'\n'
-    #txt += 'optima determines the individual probaiblity of reproduction,\n'
-    #txt += 'death, and transitions into and out of dormancy.'
-    
-    #plt.xlim(0, 1)
-    #plt.ylim(0, 8)
-    #plt.text(0.05, 5.2, txt, fontsize=12)
-    
-    #plt.savefig('/Users/lisalocey/Desktop/EC_'+envDiff+'.png', 
-    #dpi=600,bbox_inches='tight',pad_inches=0.1)
-    
-    #plt.subplots_adjust( wspace=0.0, hspace=0.4)
-    #plt.show()    
-    
-    #sys.exit()
-    #return [fig, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
-    #            SRow2Ys, Ncounts, Nverts, Scounts, Sverts]
-    return [NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
-                SRow2Ys, Ncounts, Nverts, Scounts, Sverts]
-    
-# fig = plt.figure()
-
-
-###########################  GET CONDITIONS  ################################### 
-
-""" Code to runs the microbide model and generates site-by-species matrices."""
-
-num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
-lgp = 0.92 # log-series parameter; underlying structure of regional pool
-
-conditions = [['same', 'rand', 'rand'],  
-             ['differ', 'rand', 'rand'],
-             ['same',  'env',  'env'],
-             ['differ', 'rand', 'env'],
-             ['differ', 'env',  'rand'],
-             ['differ',  'env', 'env']]
-             
-""" conditions is a list of modeling parameters for different conceptual 
-    predictions representing extreme ends of a continuum of possible differences
-    in environment and whether entering and exiting from dormancy has a
-    stochastic component
-    
-    Conditions for...
-        Conceptual prediction 1: 
-            Environments have the same effect
-            Exiting and entering dormancy has a large stochastic component 
-    
-        Conceptual prediction 2.
-            Environments have different effects. 
-            Exiting and entering dormancy has a large stochastic component
-    
-        Conceptual prediction 3.
-            Environments have the same effect
-            Exiting and entering dormancy is environmental
-    
-        Conceptual prediction 4.
-            Environments have different effects. 
-            Entering dormancy has a large stochastic component 
-            Exiting dormnancy is environmental
-    
-        Conceptual prediction 5.
-            Environments have different effects. 
-            Entering is environmental
-            Exiting dormancy has a large stochastic component
-            
-        Conceptual prediction 6.
-            Environments have different effects. 
-            Entering is environmental, Exiting is environmental
-    
-"""
+    								
+    return [[NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys],
+                [SRow2Ys, Ncounts, Nverts, Scounts, Sverts]]
 
 
 ######################### COMMUNITY SIMULATION FUNCTION ########################
-#def microbide(combo, fig, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
-#                            SRow2Ys, Ncounts, Nverts, Scounts, Sverts, ic):    
 def microbide(combo, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
                             SRow2Ys, Ncounts, Nverts, Scounts, Sverts, ic):
     
@@ -502,17 +496,65 @@ def microbide(combo, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
     
     return COM    
 
-        
+
     
+###########################  GET CONDITIONS  ################################### 
+
+""" Code to runs the microbide model and generates site-by-species matrices."""
+
+num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
+lgp = 0.92 # log-series parameter; underlying structure of regional pool
+
+conditions = [['same', 'rand', 'rand'],  
+             ['differ', 'rand', 'rand'],
+             ['same',  'env',  'env'],
+             ['differ', 'rand', 'env'],
+             ['differ', 'env',  'rand'],
+             ['differ',  'env', 'env']]
+             
+""" conditions is a list of modeling parameters for different conceptual 
+    predictions representing extreme ends of a continuum of possible differences
+    in environment and whether entering and exiting from dormancy has a
+    stochastic component
+    
+    Conditions for...
+        Conceptual prediction 1: 
+            Environments have the same effect
+            Exiting and entering dormancy has a large stochastic component 
+    
+        Conceptual prediction 2.
+            Environments have different effects. 
+            Exiting and entering dormancy has a large stochastic component
+    
+        Conceptual prediction 3.
+            Environments have the same effect
+            Exiting and entering dormancy is environmental
+    
+        Conceptual prediction 4.
+            Environments have different effects. 
+            Entering dormancy has a large stochastic component 
+            Exiting dormnancy is environmental
+    
+        Conceptual prediction 5.
+            Environments have different effects. 
+            Entering is environmental
+            Exiting dormancy has a large stochastic component
+            
+        Conceptual prediction 6.
+            Environments have different effects. 
+            Entering is environmental, Exiting is environmental
+    
+"""    
+   
 ####################  GENERATE SITE BY SPECIES DATA  ###########################
 for ic, combo in enumerate(conditions):
     
     envDiff, enterD, exitD = combo 
-    #fig, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys, SRow2Ys, Ncounts, Nverts, Scounts, Sverts =  ECfig(combo) # characterizing landscape
-    NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys, SRow2Ys, Ncounts, Nverts, Scounts, Sverts =  ECfig(combo) # characterizing landscape
 
-    #COM = microbide(combo, fig, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
-    #                        SRow2Ys, Ncounts, Nverts, Scounts, Sverts, ic)
+    landscapeLists = get_landscape(combo) # characterizing the landscape
+    NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
+    SRow2Ys, Ncounts, Nverts, Scounts, Sverts = landscapeLists[1]
+
     COM = microbide(combo, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
                             SRow2Ys, Ncounts, Nverts, Scounts, Sverts, ic)
                             # run the model & return the communities
@@ -536,12 +578,15 @@ for ic, combo in enumerate(conditions):
         
         r1 = r2
                                         
-    path = '/N/dc2/projects/Lennon_Sequences/2014_EvolutionCanyon/microbide/SbyS/'
+    #path = '/N/dc2/projects/Lennon_Sequences/2014_EvolutionCanyon/microbide/SbyS/'
+    path = '~Desktop/evolution-canyon/microbide/SbyS/'
+    
     fileName = 'Condition'+str(ic+1)
-
+                                                                                
+    fileName = 'Condition'+str(ic+1)
     OUT = open(path + fileName + '.txt','w')
     writer = csv.writer(OUT, delimiter='\t')
-                    
+                                        
     linedata = ['label', 'Group', 'numOtus']
     for i in range(S):
         linedata.append('Otu'+str(i))
