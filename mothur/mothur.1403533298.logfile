@@ -1,0 +1,104 @@
+Linux version
+
+Using ReadLine
+
+Using default file location /N/soft/rhel6/mothur/reference_files/
+
+Running 64Bit Version
+
+mothur v.1.31.2
+Last updated: 6/13/2013
+
+by
+Patrick D. Schloss
+
+Department of Microbiology & Immunology
+University of Michigan
+pschloss@umich.edu
+http://www.mothur.org
+
+When using, please cite:
+Schloss, P.D., et al., Introducing mothur: Open-source, platform-independent, community-supported software for describing and comparing microbial communities. Appl Environ Microbiol, 2009. 75(23):7537-41.
+
+Distributed under the GNU General Public License
+
+Type 'help()' for information on the commands that are available
+
+Type 'quit()' to exit program
+Batch Mode
+
+
+mothur > make.contigs(file=EC.files, insert=30, deltaq=4, processors=32)
+
+Using 32 processors.
+Reading fastq data...
+
+quitting command...
+Done.
+
+mothur > summary.seqs(fasta=EC.trim.contigs.fasta, processors=32)
+
+Using 32 processors.
+
+
+Using 32 processorsquiquitting command...
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+
+Using 32 processors.
+
+quitting command...
+quitting command...
+
+mothur > screen.seqs(fasta=EC.trim.contigs.fasta, group=EC.contigs.groups,  summary=EC.trim.contigs.summary, maxambig=0, maxlength=300, processors=32)

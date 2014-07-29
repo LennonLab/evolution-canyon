@@ -35,7 +35,9 @@ require("vegan")||install.packages("vegan");require("vegan")
 # Read OTU File
 read.otu <- function(shared = " ", 
                      cutoff = "0.03"){
-  matrix <- read.delim(shared, head=T)
+  cols <- count.fields(shared)
+  classes <- c(rep("character", 2), rep("numeric", (cols[1] - 2)))
+  matrix <- read.delim(shared, header=T, as.is=T, colClasses=classes, comment.char="")
   matrix.cutoff <- subset(matrix, matrix$label == cutoff)
   matrix.out <- as.matrix(matrix.cutoff[1:dim(matrix.cutoff)[1],
     4:(3+mean(matrix.cutoff$numOtus))])

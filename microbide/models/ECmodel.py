@@ -1,16 +1,16 @@
-from __future__ import division  # solves division problems  
-from random import choice, randrange, sample  # functions for random sampling
-import matplotlib.pyplot as plt # plotting library
-import numpy as np # scientific computing library
-import scipy as sc # another scientific computing library
-from scipy import stats # statistical computing library
-from scipy.stats import gaussian_kde, sem # 
-import sys, csv # functions to handle externel control and csv files
+from __future__ import division 
+from random import choice, randrange, sample
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt 
+import numpy as np
+import scipy as sc
+from scipy import stats
+from scipy.stats import gaussian_kde, sem
+import sys, csv
 
 
-
-
-path = '/Users/lisalocey/Desktop/evolution-canyon/microbide/SbyS/'
+path = '~Desktop/evolution-canyon/microbide/SbyS/'
 
 """ go to line 500 to get past the function definitions """
 
@@ -239,8 +239,8 @@ def ECfig(combo):
     envDiff, enterD, exitD = combo    
                 
     n = 1 * 10**4
-    #envDiff = 'differ' # These two statement are used for informal testing
-    envDiff = 'same'
+    envDiff = 'differ' # These two statement are used for informal testing
+    #envDiff = 'same'
     
     Alpha, Beta = 10, 2
     Nx = np.random.beta(Alpha, Beta, n).tolist()
@@ -278,7 +278,7 @@ def ECfig(combo):
     Sverts = sample(Sverts, 10)
     Sverts = np.array(Sverts)
     
-    NRowXs = [0.05, 0.15] 
+    NRowXs = [0.05, 0.15]   
     NRow1Ys = [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95] 
     NRow2Ys = [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95] 
     								
@@ -315,7 +315,7 @@ def ECfig(combo):
     
             
     # A SECOND PLOT
-    fig.add_subplot(2, 1, 2)
+    ax = fig.add_subplot(2, 1, 2)
     
     if envDiff == 'differ':
         DN = get_kdens(Nx)
@@ -326,7 +326,7 @@ def ECfig(combo):
     plt.plot(DS[0], DS[1], color = 'green', lw=3, label = 'South', alpha=0.5)
     plt.fill_between(DS[0], DS[1], 0, color = 'green', alpha = 0.3)
     
-    plt.xlabel('Environmental optima', fontsize=12)
+    plt.xlabel('Environmental Condition', fontsize=12)
     plt.ylabel('Frequency', fontsize=12)
     
     txt =  'Distribution(s) of environmental optima among species. A species\'\n'
@@ -343,11 +343,9 @@ def ECfig(combo):
     plt.subplots_adjust( wspace=0.0, hspace=0.4)
     plt.show()    
     
-    sys.exit()
-    return [fig, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
+    return [NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
                 SRow2Ys, Ncounts, Nverts, Scounts, Sverts]
     
-
 
 def get_landscape(combo):
     
@@ -399,8 +397,8 @@ def get_landscape(combo):
 
 
 ######################### COMMUNITY SIMULATION FUNCTION ########################
-def microbide(combo, fig, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
-                            SRow2Ys, Ncounts, Nverts, Scounts, Sverts, ic):    
+def microbide(combo, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
+                            SRow2Ys, Ncounts, Nverts, Scounts, Sverts, ic):
     
     envDiff, enterD, exitD = combo 
     
@@ -408,9 +406,9 @@ def microbide(combo, fig, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
     Smax = max(Scounts) # max heat value
     
     oDict, dDict, COM = [ {}, {}, [] ]
-    COM = immigration(COM, oDict, dDict, 2*10**6)
+    COM = immigration(COM, oDict, dDict, 2*10**5)
     
-    for t in range(10**5):
+    for t in range(2*10**6):
         
         """ Immigration """
         x = np.random.binomial(1, 0.2)
@@ -552,14 +550,10 @@ conditions = [['same', 'rand', 'rand'],
 for ic, combo in enumerate(conditions):
     
     envDiff, enterD, exitD = combo 
-    #landscapeLists = ECfig(combo) # characterizing landscape
-    #NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
-    #SRow2Ys, Ncounts, Nverts, Scounts, Sverts = landscapeLists[1]
 
     landscapeLists = get_landscape(combo) # characterizing the landscape
     NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
     SRow2Ys, Ncounts, Nverts, Scounts, Sverts = landscapeLists[1]
-
 
     COM = microbide(combo, NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys,
                             SRow2Ys, Ncounts, Nverts, Scounts, Sverts, ic)
@@ -583,7 +577,11 @@ for ic, combo in enumerate(conditions):
             sys.exit()
         
         r1 = r2
-
+                                        
+    #path = '/N/dc2/projects/Lennon_Sequences/2014_EvolutionCanyon/microbide/SbyS/'
+    path = '~Desktop/evolution-canyon/microbide/SbyS/'
+    
+    fileName = 'Condition'+str(ic+1)
                                                                                 
     fileName = 'Condition'+str(ic+1)
     OUT = open(path + fileName + '.txt','w')
