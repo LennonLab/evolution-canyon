@@ -15,7 +15,7 @@ def immigration(COM, oDict1, oDict2, dDict, im):
             
             oDict1[p] = np.random.uniform(0.0001, 0.9999, 1).tolist()[0]
             oDict2[p] = np.random.uniform(0.0001, 0.9999, 1).tolist()[0]
-            dDict[p] =  np.random.uniform(0.5000, 0.9999, 1).tolist()[0]
+            dDict[p] =  np.random.uniform(0, 0.5, 1).tolist()[0]
             
         x = np.random.uniform(0.001, 0.99, 1).tolist()[0]
         y = np.random.uniform(0.001, 0.99, 1).tolist()[0]
@@ -65,14 +65,19 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic):
             if x == 0: COM.pop(i) # likely to die from a low match    
 	
 	elif state == 1: # if the individual is dormant
-            d = dDict[spID]
-            x = np.random.binomial(1, match) # multiplicative interaction between
-                                            #dormancy decay and mismatch to env.
+            d = dDict[spID] # the individual's dormancy parameter serves as a
+                            # general "strength of dormant response" variable
+            
+            x = np.random.binomial(1, d * match) # multiplicative interaction 
+                                # between dormancy decay and mismatch to env.
             if x == 0: 
-                x = np.random.binomial(1, d) # 'second chance' from dormancy
+                x = np.random.binomial(1, d)
                 if x == 1:
-                    COM.pop(i) # die in dormancy, inherently neg. binomial  
-           		
+                    COM.pop(i) # death in dormancy, inherently becomes a 
+                    # negative binomial distributed random variable, i.e.,
+                    # the probability of dying in dormancy after x resamples  
+        
+           		   		
 	""" Reproduction """
 	i = randrange(len(COM))
         ind = COM[i]
