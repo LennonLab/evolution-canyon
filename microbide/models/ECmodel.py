@@ -1,7 +1,9 @@
 from __future__ import division 
 from random import choice, randrange, sample
-import matplotlib
-matplotlib.use('Agg')
+
+# import matplotlib # statements for running on IU servers be sure to comment out
+# matplotlib.use('Agg') # if running on local machine, resets where python looks
+
 import matplotlib.pyplot as plt 
 import numpy as np
 import scipy as sc
