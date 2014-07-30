@@ -1,6 +1,4 @@
 from __future__ import division 
-import matplotlib
-matplotlib.use('Agg')
 import numpy as np
 from scipy.stats import gaussian_kde
 import sys
@@ -35,10 +33,10 @@ def e_var(SAD):
     return(evar)
     
     
-def get_match(Nverts, Sverts, x1, y1, Ncounts, Nmax, Scounts, Smax, opt): 
+def get_match(Nverts, Sverts, x1, y1, Ncounts, Nmax, Scounts, Smax, opt1, opt2): 
 
     dmin = 10**6
-    Nenv = 0
+    Nval = 0
         
     for j, vert in enumerate(Nverts):
         x2, y2 = vert
@@ -46,10 +44,10 @@ def get_match(Nverts, Sverts, x1, y1, Ncounts, Nmax, Scounts, Smax, opt):
         dist = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
         if dist < dmin:
             dmin = dist
-            Nenv = np.abs(opt - Ncounts[j]/Nmax) # mismatch to North niche
+            Nval = np.abs(opt1 - Ncounts[j]/Nmax) # mismatch to North niche
     
     dmin = 10**6
-    Senv = 0
+    Sval = 0
     
     for j, vert in enumerate(Sverts):
         x2, y2 = vert
@@ -57,9 +55,9 @@ def get_match(Nverts, Sverts, x1, y1, Ncounts, Nmax, Scounts, Smax, opt):
         dist = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
         if dist < dmin:
             dmin = dist
-            Senv = np.abs(opt - Scounts[j]/Smax) # mismatch to South niche
+            Sval = np.abs(opt2 - Scounts[j]/Smax) # mismatch to South niche
     
-    match = 1 - (Senv * Nenv)
+    match = 1 - (np.mean([Sval, Nval])) # average match to the environment
     return match
     
 
