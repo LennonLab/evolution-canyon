@@ -126,4 +126,4 @@ def ECfig(envDiff):
             #    SRow2Xs, Ncounts, Nverts, Scounts, Sverts]
                 
 
-ECfig(envDiff='differ')
+#ECfig(envDiff='differ')
