@@ -15,10 +15,10 @@ def immigration(COM, oDict1, oDict2, dDict, im):
             
             oDict1[p] = np.random.uniform(0.0001, 0.9999, 1).tolist()[0]
             oDict2[p] = np.random.uniform(0.0001, 0.9999, 1).tolist()[0]
-            dDict[p] =  np.random.uniform(0, 0.5, 1).tolist()[0]
+            dDict[p] =  np.random.uniform(0, 0.01, 1).tolist()[0]
             
-        x = np.random.uniform(0.001, 0.99, 1).tolist()[0]
-        y = np.random.uniform(0.001, 0.99, 1).tolist()[0]
+        x = np.random.uniform(0.01, 0.99, 1).tolist()[0]
+        y = np.random.uniform(0.01, 0.99, 1).tolist()[0]
         
         COM.append([p, choice([0, 1]), x, y]) # 0 is active, 1 is dormant
                                                                                                                                  
@@ -33,9 +33,6 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic):
     Nmax = max(Ncounts) # max heat value
     Smax = max(Scounts) # max heat value
     
-    #print Nmax, Smax
-    #sys.exit()
-    
     oDict1, oDict2, dDict, COM = [ {}, {}, {}, [] ]
     
     N = 2 * 10**6 # Starting total abundance across the landscape
@@ -44,7 +41,10 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic):
     for t in range(10**6):
         
         """ Immigration """
-        p = 0.0 # probability of an individual immigrating
+        p = 0.9999999999999
+        # p = probability of an individual immigrating, 0.0 means that
+        # immigration has been 'turned off'
+        
         x = np.random.binomial(1, p) 
         if x == 1:
             COM = immigration(COM, oDict1, oDict2, dDict, 1)
