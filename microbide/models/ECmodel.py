@@ -1,7 +1,7 @@
 from __future__ import division 
 
-# import matplotlib # statements for running on IU servers be sure to comment out
-# matplotlib.use('Agg') # if running on local machine, resets where python looks
+import matplotlib # statements for running on IU servers be sure to comment out
+#matplotlib.use('Agg') # if running on local machine, resets where python looks
 
 import matplotlib.pyplot as plt 
 import sys, csv
@@ -11,7 +11,7 @@ import EClandscape as land
 import ECMicrobideCore as model
 import ECfunctions as funx
 
-path = '~Desktop/evolution-canyon/microbide/SbyS/'
+#path = '~Desktop/evolution-canyon/microbide/SbyS/'
  
 
 ###########################  GET CONDITIONS  ################################### 
@@ -95,8 +95,8 @@ for ic, combo in enumerate(conditions):
         
         r1 = r2
                                         
-    #path = '/N/dc2/projects/Lennon_Sequences/2014_EvolutionCanyon/microbide/SbyS/'
-    path = '~Desktop/evolution-canyon/microbide/SbyS/'
+    path = '/N/dc2/projects/Lennon_Sequences/2014_EvolutionCanyon/microbide/SbyS/'
+    #path = '~Desktop/evolution-canyon/microbide/SbyS/'
     
     fileName = 'Condition'+str(ic+1)
                                                                                 
