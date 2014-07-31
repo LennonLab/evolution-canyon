@@ -1,9 +1,9 @@
-from __future__ import division 
+from __future__ import division
 
 import matplotlib # statements for running on IU servers be sure to comment out
 matplotlib.use('Agg') # if running on local machine, resets where python looks
 
-import matplotlib.pyplot as plt 
+#import matplotlib.pyplot as plt
 import sys, csv
 
 import EClandscape as land
@@ -98,8 +98,6 @@ for ic, combo in enumerate(conditions):
     path = '/N/dc2/projects/Lennon_Sequences/2014_EvolutionCanyon/microbide/SbyS/'
     #path = '~Desktop/evolution-canyon/microbide/SbyS/'
     
-    fileName = 'Condition'+str(ic+1)
-                                                                                
     fileName = 'Condition'+str(ic+1)
     OUT = open(path + fileName + '.txt','w')
     writer = csv.writer(OUT, delimiter='\t')

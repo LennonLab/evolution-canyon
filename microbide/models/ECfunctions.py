@@ -4,12 +4,11 @@ from scipy.stats import gaussian_kde
 import sys
 
 
-
 def get_kdens(summands): # Finds the kernel density function across a sample
     
     density = gaussian_kde(summands)
-    #xs = np.linspace(float(min(summands)),float(max(summands)), len(summands))
-    xs = np.linspace(0,1, len(summands))
+    xs = np.linspace(float(min(summands)),float(max(summands)), len(summands))
+    #xs = np.linspace(0,1, len(summands))
     density.covariance_factor = lambda : 0.1
     density._compute_covariance()
     
@@ -36,28 +35,30 @@ def e_var(SAD):
 def get_match(Nverts, Sverts, x1, y1, Ncounts, Nmax, Scounts, Smax, opt1, opt2): 
 
     dmin = 10**6
-    Nval = 0
+    match = 0
+    
+    if x1 >= 0.5:
         
-    for j, vert in enumerate(Nverts):
-        x2, y2 = vert
+        for j, vert in enumerate(Nverts):
+            x2, y2 = vert
+                
+            dist = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+            if dist < dmin:
+                dmin = dist
+                match = np.abs(opt1 - Ncounts[j]/Nmax) # mismatch to North niche
+        
+    elif x1 < 0.5:
+        dmin = 10**6
+        match = 0
+        
+        for j, vert in enumerate(Sverts):
+            x2, y2 = vert
             
-        dist = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-        if dist < dmin:
-            dmin = dist
-            Nval = np.abs(opt1 - Ncounts[j]/Nmax) # mismatch to North niche
+            dist = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+            if dist < dmin:
+                dmin = dist
+                match = np.abs(opt2 - Scounts[j]/Smax) # mismatch to South niche
     
-    dmin = 10**6
-    Sval = 0
-    
-    for j, vert in enumerate(Sverts):
-        x2, y2 = vert
-        
-        dist = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-        if dist < dmin:
-            dmin = dist
-            Sval = np.abs(opt2 - Scounts[j]/Smax) # mismatch to South niche
-    
-    match = 1 - (np.mean([Sval, Nval])) # average match to the environment
     return match
     
 

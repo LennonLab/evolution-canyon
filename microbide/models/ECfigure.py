@@ -1,11 +1,11 @@
 from __future__ import division 
 from random import sample
 
-#import matplotlib  # These two statements are for running in IU servers
-#matplotlib.use('Agg')
+import matplotlib  # These two statements are for running in IU servers
+matplotlib.use('Agg')
 
+#import matplotlib.pyplot as plt 
 import ECfunctions as funx
-import matplotlib.pyplot as plt 
 import numpy as np
 import sys
 
