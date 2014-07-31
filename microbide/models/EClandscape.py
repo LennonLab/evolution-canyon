@@ -1,7 +1,7 @@
 from __future__ import division 
 
-import matplotlib # statements for running on IU servers be sure to comment out
-matplotlib.use('Agg') # if running on local machine, resets where python looks
+#import matplotlib # statements for running on IU servers be sure to comment out
+#matplotlib.use('Agg') # if running on local machine, resets where python looks
 
 import matplotlib.pyplot as plt 
 import numpy as np
