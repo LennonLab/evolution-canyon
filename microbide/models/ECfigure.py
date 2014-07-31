@@ -4,11 +4,12 @@ from random import sample
 #import matplotlib  # These two statements are for running in IU servers
 #matplotlib.use('Agg')
 
+import ECfunctions as funx
 import matplotlib.pyplot as plt 
 import numpy as np
 import sys
 
-import ECfunctions as funx
+path = '/Users/lisalocey/Desktop/evolution-canyon/microbide/models/'
 
 def ECfig(envDiff):
     
@@ -16,9 +17,9 @@ def ECfig(envDiff):
     Alpha, Beta = 10, 3
     
     Nx = np.random.beta(Alpha, Beta, n).tolist()
-    Nx = filter(lambda a: a >= 0.5, Nx)
+    #Nx = filter(lambda a: a >= 0.5, Nx)
     Sx = np.random.beta(Beta, Alpha, n).tolist()
-    Sx = filter(lambda a: a <= 0.5, Sx)
+    #Sx = filter(lambda a: a <= 0.5, Sx)
         
     Ny = np.random.uniform(0, 1, len(Nx)).tolist()
     Sy = np.random.uniform(0, 1, len(Sx)).tolist()
@@ -28,21 +29,23 @@ def ECfig(envDiff):
     gs = 20
     
     if envDiff == 'differ':
+        # extra hexbin layer to beautify the landscape plot
         #plt.hexbin(Nx, Ny, mincnt=0, cmap=plt.cm.jet, gridsize = gs, alpha=0.4)
         #plt.hexbin(Sx, Sy, mincnt=0, cmap=plt.cm.jet, gridsize = gs, alpha=0.4)
     
-        imageN = plt.hexbin(Nx, Ny, mincnt=0, gridsize = gs, bins = 'log',
+        imageN = plt.hexbin(Nx, Ny, mincnt=1, gridsize = gs, bins = 'log',
             cmap=plt.cm.YlOrBr, alpha=0.6)
-        imageS = plt.hexbin(Sx, Sy, mincnt=0, gridsize = gs, bins = 'log',
+        imageS = plt.hexbin(Sx, Sy, mincnt=1, gridsize = gs, bins = 'log',
             cmap=plt.cm.YlGn, alpha=0.6)
     
     elif envDiff == 'same':
+        # extra hexbin layer to beautify the landscape plot
         #plt.hexbin(Nx, Ny, mincnt=0, cmap=plt.cm.jet, gridsize = gs, alpha=0.4)
         #plt.hexbin(Sx, Sy, mincnt=0, cmap=plt.cm.jet, gridsize = gs, alpha=0.4)
         
-        imageN = plt.hexbin(Nx, Ny, mincnt=0, gridsize = gs, bins = 'log', 
+        imageN = plt.hexbin(Nx, Ny, mincnt=1, gridsize = gs, bins = 'log', 
             cmap=plt.cm.YlGn, alpha=0.6)
-        imageS = plt.hexbin(Sx, Sy, mincnt=0, gridsize = gs, bins = 'log', 
+        imageS = plt.hexbin(Sx, Sy, mincnt=1, gridsize = gs, bins = 'log', 
             cmap=plt.cm.YlGn, alpha=0.6)
                 
     Ncounts = imageN.get_array()
@@ -55,19 +58,19 @@ def ECfig(envDiff):
     Sverts = sample(Sverts, 10)
     Sverts = np.array(Sverts)
     
-    NRow1Xs = [0.06] * 10  
-    NRow2Xs = [0.12] * 10
+    NRow1Xs = [0.15] * 10  
+    NRow2Xs = [0.25] * 10
     NRowYs = [0.26, 0.32, 0.38, 0.44, 0.50, 0.56, 0.62, 0.68, 0.74, 0.80] 
     
-    SRow1Xs = [0.88] * 10  
-    SRow2Xs = [0.94] * 10
+    SRow1Xs = [0.75] * 10  
+    SRow2Xs = [0.85] * 10
     SRowYs = [0.26, 0.32, 0.38, 0.44, 0.50, 0.56, 0.62, 0.68, 0.74, 0.80]
     
-    plt.scatter(NRow1Xs, NRowYs, color='w', s=20, alpha=0.5)							
-    plt.scatter(NRow2Xs, NRowYs, color='w', s=20, alpha=0.5)							
+    plt.scatter(NRow1Xs, NRowYs, color='w', s=40, alpha=0.8)							
+    plt.scatter(NRow2Xs, NRowYs, color='w', s=40, alpha=0.8)							
     
-    plt.scatter(SRow1Xs, SRowYs, color='w', s=20, alpha=0.5)							
-    plt.scatter(SRow2Xs, SRowYs, color='w', s=20, alpha=0.5)							
+    plt.scatter(SRow1Xs, SRowYs, color='w', s=40, alpha=0.8)							
+    plt.scatter(SRow2Xs, SRowYs, color='w', s=40, alpha=0.8)							
     
     plt.xlim(0, 1)
     plt.ylim(0, 1)
@@ -86,8 +89,8 @@ def ECfig(envDiff):
         plt.title(title, fontsize=13)
     
     
-    #plt.savefig('EC_Heat'+envDiff+'.png', 
-    #dpi=600,bbox_inches='tight',pad_inches=0.1)
+    plt.savefig(path+'EC_Heat'+envDiff+'.png', 
+        dpi=600,bbox_inches='tight',pad_inches=0.1)
     
     # A SECOND FIGURE
     fig = plt.figure()
@@ -113,8 +116,8 @@ def ECfig(envDiff):
     plt.ylim(0, 8)
     plt.text(0.05, 5.2, txt, fontsize=12)
     
-    #plt.savefig('ECkdens_'+envDiff+'.png', 
-    #dpi=600,bbox_inches='tight',pad_inches=0.1)
+    plt.savefig(path+'figures/ECkdens_'+envDiff+'.png', 
+        dpi=600,bbox_inches='tight',pad_inches=0.1)
     
     plt.subplots_adjust(wspace=0.0, hspace=0.4)
     plt.show()    
@@ -123,4 +126,4 @@ def ECfig(envDiff):
             #    SRow2Xs, Ncounts, Nverts, Scounts, Sverts]
                 
 
-ECfig(envDiff='differ')
+#ECfig(envDiff='differ')
