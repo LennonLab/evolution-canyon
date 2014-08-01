@@ -27,7 +27,7 @@ test1 <- ec.plsda(shared     = "./microbide/SbyS/Condition5.txt",
                      
 test1plot <- ec.plsda.plot(plsda.in = "test1")
 
-test1 <- ec.pcoa.fun(shared     = "./microbide/SbyS/Condition5.txt",
+test1 <- ec.pcoa.fun(shared     = "./microbide/SbyS/Condition3.txt",
                      cutoff     = "0.03",
                      design     = "./data/simmy.design.txt")
 

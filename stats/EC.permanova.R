@@ -51,11 +51,16 @@ design <- read.delim(design, header=T, row.names=1)
 samps <- (colnames(ec_data))
 which(samps == "EC-2A-D")
 
+# Remove problematic samples and their pairs
 ec_data_red <- ec_data[,-c(9,20:21,24:27,32,37,74)]
-# removes problematic samples and their pairs
+
+# Remove any OTUs with <2 OTUs
+ec_data_red <- ec_data_red[which(rowSums(ec_data_red) >= 2),]
 
 samps_red <- colnames(ec_data_red) # recover samples from reduced dataset
 design_red <- design[samps_red,] # design matrix w/o problem samples & pairs
+
+design_red$paired <- c(rep(seq(1:14), each=2), rep(seq(1:19), each=2))
 
 #2 -- Options for transformation, relativation, and normalization
 Xt <- t(ec_data_red) # transpose sample x OTU matrix; necssary for 'multilelve'
@@ -83,14 +88,17 @@ Adonis.b <- adonis(t(ec_data_red) ~ design_red$molecule * design_red$slope)
 
 
 # Molecule and Slope (no interactin, no grouping)  Transformation
-Adonis.a <- adonis(X ~ design_red$molecule + design_red$slope)
+Adonis.a <- adonis(Xrellogt ~ design_red$molecule + design_red$slope)
 
-Adonis.b <- adonis(X ~ design_red$molecule * design_red$slope)
+Adonis.b <- adonis(Xrellogt ~ design_red$molecule * design_red$slope)
 
 
 
 # Using Strats
-Adonis.c <- adonis(X ~ design_red$slope, strata=design_red$molecules)
+Adonis.c <- adonis(Xrellogt ~ design_red$molecule * design_red$slope, strata=design_red$paired)
+Adonis.c <- adonis(Xrellogt ~ design_red$molecule * design_red$slope, strata=design_red$station)
+
+
 
 # Manual permutation based on biobucket to test time effect --> results is similar to adonis
 # Is this really what we want????
