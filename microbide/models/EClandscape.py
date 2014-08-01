@@ -2,6 +2,7 @@ from __future__ import division
 
 import matplotlib # statements for running on IU servers be sure to comment out
 matplotlib.use('Agg') # if running on local machine, resets where python looks
+from matplotlib import pyplot as plt
 
 #import matplotlib.pyplot as plt 
 import numpy as np
@@ -10,10 +11,7 @@ from random import sample
 def get_landscape(combo):
     
     envDiff, enterD, exitD = combo                
-    n = 2 * 10**4 # size of sample to be draw from a beta distribution
-    
-    #envDiff = 'differ' # These two statement are used for informal testing
-    #envDiff = 'same'
+    n = 1 * 10**3 # size of sample to be draw from a beta distribution
     
     Alpha, Beta = 10, 3
     Nx = np.random.beta(Alpha, Beta, n).tolist()
