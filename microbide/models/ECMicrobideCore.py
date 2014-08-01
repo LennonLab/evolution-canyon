@@ -2,19 +2,22 @@ from __future__ import division
 from random import choice, randrange
 import numpy as np
 import sys
-
 import ECfunctions as funx
 
 
-
-def immigration(COM, oDict1, oDict2, dDict, im):    
+def immigration(envDiff, COM, oDict1, oDict2, dDict, im):    
     
     propagules = np.random.logseries(0.97, im)  # list of propagules 
     for p in propagules:
         if p not in oDict1:
             
             oDict1[p] = np.random.uniform(0.0001, 0.9999, 1).tolist()[0]
-            oDict2[p] = np.random.uniform(0.0001, 0.9999, 1).tolist()[0]
+            if envDiff == 'same': 
+                oDict2[p] = float(oDict1[p])
+                
+            elif envDiff == 'differ': 
+                oDict2[p] = np.random.uniform(0.0001, 0.9999, 1).tolist()[0]
+            
             dDict[p] =  np.random.uniform(0, 0.01, 1).tolist()[0]
             
         x = np.random.uniform(0.01, 0.99, 1).tolist()[0]
@@ -36,7 +39,7 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic):
     oDict1, oDict2, dDict, COM = [ {}, {}, {}, [] ]
     
     N = 2 * 10**6 # Starting total abundance across the landscape
-    COM = immigration(COM, oDict1, oDict2, dDict, N)
+    COM = immigration(envDiff, COM, oDict1, oDict2, dDict, N)
     
     for t in range(10**6):
         
@@ -47,7 +50,7 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic):
         
         x = np.random.binomial(1, p) 
         if x == 1:
-            COM = immigration(COM, oDict1, oDict2, dDict, 1)
+            COM = immigration(envDiff, COM, oDict1, oDict2, dDict, 1)
     
     
         """ Death """

@@ -38,7 +38,7 @@ def get_match(Nverts, Sverts, x1, y1, Ncounts, Nmax, Scounts, Smax, opt1, opt2):
     match = 0
     
     if x1 >= 0.5:
-        
+            
         for j, vert in enumerate(Nverts):
             x2, y2 = vert
                 
@@ -46,10 +46,8 @@ def get_match(Nverts, Sverts, x1, y1, Ncounts, Nmax, Scounts, Smax, opt1, opt2):
             if dist < dmin:
                 dmin = dist
                 match = np.abs(opt1 - Ncounts[j]/Nmax) # mismatch to North niche
-        
+            
     elif x1 < 0.5:
-        dmin = 10**6
-        match = 0
         
         for j, vert in enumerate(Sverts):
             x2, y2 = vert
