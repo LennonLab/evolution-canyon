@@ -1,7 +1,9 @@
 from __future__ import division
+
+from multiprocessing import Pool # Python tool for parallelizing
 import sys, csv
+
 import EClandscape as land
-#import ECfigure as ECfig
 import ECMicrobideCore as model
 import ECfunctions as funx
 
@@ -15,12 +17,12 @@ import ECfunctions as funx
 num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
 lgp = 0.92 # log-series parameter; underlying structure of regional pool
 
-conditions = [['same', 'rand', 'rand'],  
-             ['differ', 'rand', 'rand'],
-             ['same',  'env',  'env'],
-             ['differ', 'rand', 'env'],
-             ['differ', 'env',  'rand'],
-             ['differ',  'env', 'env']]
+conditions = [[1, 'same', 'rand', 'rand']]#,  
+             #[2, 'differ', 'rand', 'rand'],
+             #[3, 'same',  'env',  'env'],
+             #[4, 'differ', 'rand', 'env'],
+             #[5, 'differ', 'env',  'rand'],
+             #[6, 'differ',  'env', 'env']]
              
 """ conditions is a list of modeling parameters for different conceptual 
     predictions representing extreme ends of a continuum of possible differences
@@ -57,16 +59,17 @@ conditions = [['same', 'rand', 'rand'],
 """    
    
 ####################  GENERATE SITE BY SPECIES DATA  ###########################
-for ic, combo in enumerate(conditions):
+def worker(combo):
     
-    envDiff, enterD, exitD = combo 
-
+    condition, envDiff, enterD, exitD = combo 
+    
+    combo.pop(0)
     landscapeLists = land.get_landscape(combo) # characterizing the landscape
     
     NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
     SRow2Ys, Ncounts, Nverts, Scounts, Sverts = landscapeLists[1]
     
-    COM = model.microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic)
+    COM = model.microbide(combo, Ncounts, Nverts, Scounts, Sverts, condition)
                             # run the model & return the communities
     
     nCOM, sCOM = funx.SpeciesInPatches(COM, NRowXs, NRow1Ys, NRow2Ys,
@@ -92,7 +95,7 @@ for ic, combo in enumerate(conditions):
     #path = '/N/dc2/projects/Lennon_Sequences/2014_EvolutionCanyon/microbide/SbyS/'
     path = '~Desktop/evolution-canyon/microbide/SbyS/'
     
-    fileName = 'Condition'+str(ic+1)
+    fileName = 'Condition'+str(condition)
     OUT = open(path + fileName + '.txt','w')
     writer = csv.writer(OUT, delimiter='\t')
                                         
@@ -110,3 +113,10 @@ for ic, combo in enumerate(conditions):
         writer.writerow(row)
     
     OUT.close()
+
+    return
+    
+pool = Pool()
+pool.map(worker, conditions)
+pool.close()
+#pool.join()
