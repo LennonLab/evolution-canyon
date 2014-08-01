@@ -16,12 +16,12 @@ import ECfunctions as funx
 num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
 lgp = 0.92 # log-series parameter; underlying structure of regional pool
 
-conditions = [[1, 'same', 'rand', 'rand']]#,  
-             #[2, 'differ', 'rand', 'rand'],
-             #[3, 'same',  'env',  'env'],
-             #[4, 'differ', 'rand', 'env'],
-             #[5, 'differ', 'env',  'rand'],
-             #[6, 'differ',  'env', 'env']]
+conditions = [[1, 'same', 'rand', 'rand'],  
+             [2, 'differ', 'rand', 'rand'],
+             [3, 'same',  'env',  'env'],
+             [4, 'differ', 'rand', 'env'],
+             [5, 'differ', 'env',  'rand'],
+             [6, 'differ',  'env', 'env']]
              
 """ conditions is a list of modeling parameters for different conceptual 
     predictions representing extreme ends of a continuum of possible differences
