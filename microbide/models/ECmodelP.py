@@ -1,5 +1,4 @@
 from __future__ import division
-
 from multiprocessing import Pool # Python tool for parallelizing
 import sys, csv
 
@@ -92,8 +91,8 @@ def worker(combo):
         
         r1 = r2
                                         
-    #path = '/N/dc2/projects/Lennon_Sequences/2014_EvolutionCanyon/microbide/SbyS/'
-    path = '~Desktop/evolution-canyon/microbide/SbyS/'
+    path = '/N/dc2/projects/Lennon_Sequences/2014_EvolutionCanyon/microbide/SbyS/'
+    #path = '~Desktop/evolution-canyon/microbide/SbyS/'
     
     fileName = 'Condition'+str(condition)
     OUT = open(path + fileName + '.txt','w')

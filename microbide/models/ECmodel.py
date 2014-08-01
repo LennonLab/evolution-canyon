@@ -1,7 +1,6 @@
 from __future__ import division
 import sys, csv
 import EClandscape as land
-#import ECfigure as ECfig
 import ECMicrobideCore as model
 import ECfunctions as funx
 

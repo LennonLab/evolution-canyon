@@ -2,9 +2,7 @@ from __future__ import division
 from random import choice, randrange
 import numpy as np
 import sys
-
 import ECfunctions as funx
-
 
 
 def immigration(envDiff, COM, oDict1, oDict2, dDict, im):    
