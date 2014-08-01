@@ -133,7 +133,7 @@ ec.pcoa.fun <- function(shared = " ", cutoff = " ", design = " "){
 
   
   # Import Data (Site by OTU Matrix)
-  ec_data <- t(read.otu(shared, cutoff))
+  ec_data <- t(read.otu(shared, cutoff))  # rows = sp, col = site
   design  <- read.delim(design, header=T, row.names=1)
   
   # Remove OTUs with <2 individuals
@@ -144,7 +144,7 @@ ec.pcoa.fun <- function(shared = " ", cutoff = " ", design = " "){
 	              for(i in 1:ncol(ec_data)){
                   Xrel[,i]=ec_data[,i]/sum(ec_data[,i])
                 } 
-  Xrelt    <- t(Xrel)
+  Xrelt    <- t(Xrel)     # rows = site , col = sp
   Xlogrelt <- decostand(Xrelt,method="log")[,which(colSums(Xrelt) !=0)]
   
   # Create Factors for Multilevel Model
@@ -165,14 +165,16 @@ ec.pcoa.fun <- function(shared = " ", cutoff = " ", design = " "){
   dataREL <- ec_data
   for(i in 1:ncol(ec_data)){
     dataREL[,i] = ec_data[,i]/sum(ec_data[,i])
-    }  
+    }
+    
+  dataREL.log <- decostand(dataREL,method="log")  
 
   # Create Distance Matrix with bray (deafault), manhattan, euclidean,
   #  canberra, bray, kulczynski, jaccard, gower, altGower, morisita, horn,
   #  mountford, raup, binomial, or chao. Most should be part of vegan,
   #  but possilbly 'labdsv' or 'BiodiversityR' packages
   samplePA.dist <- vegdist(t(dataPA),method="bray")
-  sampleREL.dist <- vegdist(t(dataREL),method="bray")
+  sampleREL.dist <- vegdist(Xlogrelt,method="bray")
       
   # Principal Coordinates Analysis
   ec_pcoa <- cmdscale(sampleREL.dist,k=3,eig=TRUE,add=FALSE) 
