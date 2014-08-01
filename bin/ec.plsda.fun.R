@@ -38,11 +38,11 @@ ec.plsda <- function(shared     = " ",
   require("mixOmics")||install.packages("mixOmics");require("mixOmics")
   
   # Import Data (Site by OTU Matrix)
-  ec_data <- t(read.otu(shared, cutoff))
+  ec_data <- t(read.otu(shared, cutoff))  # rows = sp, col = site
   design  <- read.delim(design, header=T, row.names=1)
   
   # Remove OTUs with <2 individuals
-  ec_data <- ec_data[which(rowSums(ec_data) >= 2),]
+  ec_data <- ec_data[which(rowSums(ec_data) >= 2),] # removes rows (sp) with <2
   
   # Data Transformation: Relativize, Transpose, Log10-Transform
   Xrel     <- ec_data
@@ -131,8 +131,8 @@ ec.plsda <- function(shared     = " ",
        yaxt = "n", 
        cex.lab  = 1.5, 
        cex.axis = 1.2,
-       xlab=paste("PCoA Axis 1 (",var1, "%)", sep=""), 
-       ylab=paste("PCoA Axis 2 (",var2, "%)", sep=""),)
+       xlab=paste("PLS-DA Axis 1 (",var1, "%)", sep=""), 
+       ylab=paste("PLS-DA Axis 2 (",var2, "%)", sep=""),)
         
   axis(side=1, las=1) # add x-axis ticks and labels  
   axis(side=2, las=1) # add y-axis ticks and labels   
