@@ -29,12 +29,11 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
   # Remove OTUs with less than ten observations
   ec_data_red <- ec_data.tmp[,colSums(ec_data.tmp) >= 10]
 
-
   # design matrix w/o problem samples & pairs
   design_red <- design[rownames(ec_data_red),]
   design_red$paired <- c(rep(seq(1:14), each=2), rep(seq(1:19), each=2))
 
-  #3 -- Create factors for multilevel model
+  # Create factors for model
   slope <- design_red$slope # factor 1
   molecule <- design_red$molecule # factor 2
   paired <- design_red$paired
@@ -83,6 +82,85 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
   ordiellipse(dbRDA, groups=slope.molecule.concat, label=T, kind="sd", conf=0.95)
 
   anova(dbRDA, by="terms", permu=500)
+  
+  }
+  
+  
+  
+  ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
+  
+  shared     = "./microbide/SbyS/Condition6.txt"
+  cutoff     = "0.03"
+  design     = "./data/simmy.design.txt"
+  
+  
+
+  source("bin/DiversityFunctions.r")
+  require(vegan)
+
+  # Import Site by OTU Matrix
+  ec_data <- read.otu(shared, "0.03")
+  design <- read.delim(design, header=T, row.names=1)
+
+  # Remove OTUs with less than ten observations
+  ec_data_red <- ec_data[,colSums(ec_data) >= 10]
+
+  # Create factors for model
+  slope <- design$slope # factor 1
+  molecule <- design$molecule # factor 2
+  paired <- design$paired
+  site <- design$site
+  station <- design$station
+  slope.molecule <- data.frame(cbind(as.character(slope),
+    as.character(molecule))) # Y matrix with factor 1 and 2
+  slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")],
+    sep = "")) # create unique treat ID vector
+  pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:5), each=2),
+    rep(seq(1:10), each=2), rep(seq(1:9), each=2))
+  # To include "questionable" data uncomment the following
+  # pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:8), each=2),
+  #    rep(seq(1:10), each=10), rep(seq(1:9), each=2))
+  # Create a vector of molecules by station
+  station.molecule.concat <- paste(station, molecule, sep = "")
+
+  # Calculate Presense Absence
+  dataPA <- (ec_data_red > 0)*1
+
+  # Calculating Relative Abundance
+  dataREL <- ec_data_red
+  for(i in 1:nrow(ec_data_red)){
+    dataREL[i,] = ec_data_red[i,]/sum(ec_data_red[i,])
+    }
+
+  # Log Transform Relative Abundance
+  dataREL.l <- decostand(dataREL,method="log")
+
+  # Chord Transformation
+  dataREL.c <- decostand(dataREL, method="normalize")
+
+  # Hellinger Transformation
+  dataREL.h <- decostand(dataREL, method="hellinger")
+
+  # Create Distance Matrix with bray (deafault), manhattan, euclidean, canberra, bray, kulczynski, jaccard, gower, altGower, morisita, horn, mountford, raup, binomial, or chao. Most should be part of vegan, but possilbly 'labdsv' or 'BiodiversityR' packages
+  samplePA.dist <- vegdist(dataREL.h,method="bray")
+  sampleREL.dist <- vegdist(dataREL.h,method="bray")
+
+  # Distance Based Redundancy Analysis
+  dbRDA <- capscale(dataREL.l ~ slope + molecule, distance="bray")
+
+  head(summary(dbRDA))
+
+  plot(dbRDA)
+  ordiellipse(dbRDA, groups=slope.molecule.concat, label=T, kind="sd", conf=0.95)
+
+  anova(dbRDA, by="terms", permu=500)
+  
+  
+  
+  
+  
+  
+  
 
   # Principal Coordinates Analysis
   ec_pcoa <- cmdscale(sampleREL.dist,k=3,eig=TRUE,add=FALSE)
