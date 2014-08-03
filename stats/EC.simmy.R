@@ -14,20 +14,20 @@
 # Setup Work Environment
 rm(list=ls())
 setwd("~/GitHub/evolution-canyon/")
-source("bin/ec.plsda.fun.R")
+source("bin/ec.plsda.fun.R")                              
 source("bin/ec.pcoa.R")
 
 # Run analysis of MICROBIDE simulation data
 
 input <- list.files("./microbide/SbyS/", "*.txt")
 
-test1 <- ec.plsda(shared     = "./microbide/SbyS/Condition5.txt",
+test1 <- ec.plsda(shared     = "./microbide/SbyS/Condition1.txt",
                      cutoff     = "0.03",
                      design     = "./data/simmy.design.txt")
                      
 test1plot <- ec.plsda.plot(plsda.in = "test1")
 
-test1 <- ec.pcoa.fun(shared     = "./microbide/SbyS/Condition3.txt",
+test1 <- ec.pcoa.fun(shared     = "./microbide/SbyS/Condition6.txt",
                      cutoff     = "0.03",
                      design     = "./data/simmy.design.txt")
 
