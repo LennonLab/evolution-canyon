@@ -7,7 +7,7 @@ import ECfunctions as funx
 
 def immigration(envDiff, COM, oDict1, oDict2, dDict, im):    
     
-    propagules = np.random.logseries(0.97, im)  # list of propagules 
+    propagules = np.random.logseries(0.92, im)  # list of propagules 
     for p in propagules:
         if p not in oDict1:
             
@@ -41,7 +41,7 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic):
     N = 2 * 10**6 # Starting total abundance across the landscape
     COM = immigration(envDiff, COM, oDict1, oDict2, dDict, N)
     
-    for t in range(10**6):
+    for t in range(10**7):
         
         """ Immigration """
         p = 0.9999999999999
