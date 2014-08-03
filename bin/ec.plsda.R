@@ -45,7 +45,8 @@ ec.plsda <- function(shared     = " ",
   ec_data <- t(read.otu(shared, "0.03")) # takes a long time (10 mins)
   design <- read.delim(design, header=T, row.names=1) 
   # make sure design command in EC.test.r is run first
- 
+             
+             
   # Note: owing to amplification issues, we only submitted 76 of 80 samples
   # The four samples NOT submitted were C-1E-R, EC-2G-R, EC-2J-R, EC-6I-D
   # So, removed their pairs for PLS-DA: EC-1E-D, EC-2G-D, EC-2J-D,EC-6I-R
