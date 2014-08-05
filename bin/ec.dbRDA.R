@@ -99,11 +99,11 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
   require(vegan)
 
   # Import Site by OTU Matrix
-  ec_data <- read.otu(shared, "0.03")
+  ec_data.sim <- read.otu(shared, "0.03")
   design <- read.delim(design, header=T, row.names=1)
 
   # Remove OTUs with less than ten observations
-  ec_data_red <- ec_data[,colSums(ec_data) >= 10]
+  ec_data_red <- ec_data.sim[,colSums(ec_data.sim) >= 10]
 
   # Create factors for model
   slope <- design$slope # factor 1
@@ -147,16 +147,73 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
 
   # Distance Based Redundancy Analysis
   dbRDA <- capscale(dataREL.l ~ slope + molecule, distance="bray")
+# Distance Based Redundancy Analysis
+dbRDA <- capscale(dataREL ~ slope + molecule+ Condition(paired), distance="bray")
 
-  head(summary(dbRDA))
+head(summary(dbRDA))
+RsquareAdj(dbRDA)
+anova(dbRDA, by="terms", permu=999)
+  
+varpart(dataREL,  ~ slope, ~ molecule)
 
-  plot(dbRDA)
-  ordiellipse(dbRDA, groups=slope.molecule.concat, label=T, kind="sd", conf=0.95)
 
-  anova(dbRDA, by="terms", permu=500)
+  # Percent Variance Explained Using PCoA (Axis 1,2,3)
+  explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2) 
+  explainvar2 <- round(dbRDA$CCA$eig[2]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+
+
+
+RDA <- as.data.frame(dbRDA$CCA$wa.eig)
+RDA$molecule <- design$molecule
+RDA$slope <- design$slope
+RDA$labs <- slope.molecule.concat
+
+
+# Plot Parameters
+par(mfrow=c(1,1), mar=c(5,5,1,1)) 
+layout(rbind(1, 2), height=c(7, 1)) 
+x.dim <- c(min(RDA$RDA1)+min(RDA$RDA1)*0.2,max(RDA$RDA1)+max(RDA$RDA1)*0.2)
+y.dim <- c(min(RDA$RDA2)+min(RDA$RDA2)*0.2,max(RDA$RDA2)+max(RDA$RDA2)*0.2)
+                       
+# Initiate Plot
+plot(RDA$RDA1, RDA$RDA2, 
+  xlab = paste("RDA Axis 1 (",explainvar1, "%)", sep=""),
+  ylab = paste("RDA Axis 2 (",explainvar2, "%)", sep=""), 
+  xlim = x.dim,ylim= y.dim, pch=16, cex=2.0, type="n",xaxt="n",
+  yaxt = "n", cex.lab=1.5, cex.axis=1.2)  
+axis(side=1, las=1)   
+axis(side=2, las=1)    
+abline(h=0, lty="dotted")  
+abline(v=0, lty="dotted")
+mol.shape <- rep(NA, dim(RDA)[1])
+  for (i in 1:length(mol.shape)){
+    if (RDA$molecule[i] == "DNA"){mol.shape[i] = 21}
+    else {mol.shape[i] = 22}
+  }
+slope.color <- rep(NA, dim(RDA)[1])
+  for (i in 1:length(slope.color)){
+    if (RDA$slope[i] == "North") {slope.color[i] = "brown"}
+    else {slope.color[i] = "green3"}
+  } 
+points(RDA$RDA1, RDA$RDA2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)   
+ordiellipse(cbind(RDA$RDA1, RDA$RDA2), RDA$labs, kind="sd", conf=0.95,
+  lwd=2, lty=3, draw = "lines", col = "black", label=TRUE)
+
+box(lwd=2)
+par(mar=c(0, 3, 0, 0))
+plot.new()
+legend("center", c(paste("All; ",levels(RDA$slope)[1]," Slope", sep=""), 
+  paste("All; ",levels(RDA$slope)[2]," Slope", sep=""), 
+  paste("Active; ",levels(RDA$slope)[1]," Slope", sep=""),
+  paste("Active; ",levels(RDA$slope)[2]," Slope", sep="")), 
+  pt.lwd=2, col="black", pt.bg=c("brown", "green3", "brown", 
+  "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=1.5, pt.cex=2)
+    
+
+anova(dbRDA, by="terms", permu=999)
+adonis(dataREL.c ~ slope + molecule, strata=paired, method="bray", permutations=1000)
   
-  
-  
+varpart(dataREL,  ~ slope, ~ molecule)
   
   
   
