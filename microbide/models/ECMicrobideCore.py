@@ -104,32 +104,27 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic):
         opt1, opt2 =  oDict1[ind[0]], oDict2[ind[0]]
         
         if state == 0: # if active
-            match = funx.get_match(Nverts, Sverts, x1, y1, Ncounts, 
-                                    Nmax, Scounts, Smax, opt1, opt2)
+            if enterD == 'env':
+       	        match = funx.get_match(Nverts, Sverts, x1, y1, Ncounts, 
+                            Nmax, Scounts, Smax, opt1, opt2)
             
-            if enterD == 'rand':
-                
-                match1 = 0
-	        while match1 <=0 or match1 >=1: 
-	           match1 = np.random.uniform(0, 1) 
-	        match = float(match1)
-	    
+            elif enterD == 'rand':
+                match = 0.5 # going super simple. everybody gets 0.5
+	        
 	    x = np.random.binomial(1, match)
 	    if x == 0:
 	        COM[i][1] = 1 # go dormant with a low match              
 	        #print 'go dormant with a match of', round(match,2)
 	       
-	if state == 1: # if dormant
-	    match = funx.get_match(Nverts, Sverts, x1, y1, Ncounts, 
-                                    Nmax, Scounts, Smax, opt1, opt2)
-            
-            if exitD == 'rand': 
-	        
-	        match1 = 0
-	        while match1 <=0 or match1 >=1:
-	            match1 = np.random.uniform(0, 1)
-	        match = float(match1)
+	elif state == 1: # if dormant
 	    
+	    if exitD == 'env':
+       	        match = funx.get_match(Nverts, Sverts, x1, y1, Ncounts, 
+                            Nmax, Scounts, Smax, opt1, opt2)
+            
+            elif exitD == 'rand': 
+	        match = 0.5  # going super simple. everybody gets 0.5
+	        
 	    x = np.random.binomial(1, match)
 	    if x == 1:
 	        COM[i][1] = 0 # activate with a high match   
