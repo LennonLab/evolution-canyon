@@ -179,7 +179,7 @@ y.dim <- c(min(RDA$RDA2)+min(RDA$RDA2)*0.2,max(RDA$RDA2)+max(RDA$RDA2)*0.2)
 plot(RDA$RDA1, RDA$RDA2, 
   xlab = paste("RDA Axis 1 (",explainvar1, "%)", sep=""),
   ylab = paste("RDA Axis 2 (",explainvar2, "%)", sep=""), 
-  xlim = x.dim,ylim= y.dim, pch=16, cex=2.0, type="n",xaxt="n",
+  xlim = c(-0.2, 0.2),ylim= c(-0.1, 0.1), pch=16, cex=2.0, type="n",xaxt="n",
   yaxt = "n", cex.lab=1.5, cex.axis=1.2)  
 axis(side=1, las=1)   
 axis(side=2, las=1)    
@@ -197,7 +197,7 @@ slope.color <- rep(NA, dim(RDA)[1])
   } 
 points(RDA$RDA1, RDA$RDA2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)   
 ordiellipse(cbind(RDA$RDA1, RDA$RDA2), RDA$labs, kind="sd", conf=0.95,
-  lwd=2, lty=3, draw = "lines", col = "black", label=TRUE)
+  lwd=2, lty=3, draw = "lines", col = "black", label=FALSE)
 
 box(lwd=2)
 par(mar=c(0, 3, 0, 0))
