@@ -11,7 +11,7 @@ import ECfunctions as funx
 
 ###########################  GET CONDITIONS  ################################### 
 
-""" Code to runs the microbide model and generates site-by-species matrices."""
+""" Code to run the microbide model and generates site-by-species matrices."""
 
 num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
 lgp = 0.92 # log-series parameter; underlying structure of regional pool
@@ -119,3 +119,6 @@ pool = Pool()
 pool.map(worker, conditions)
 pool.close()
 #pool.join()
+
+
+
