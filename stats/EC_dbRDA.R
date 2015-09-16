@@ -162,7 +162,7 @@ legend("center", c(paste("All; ",levels(RDA$slope)[1]," Slope", sep=""),
     
 
 anova(dbRDA, by="terms", permu=999)
-adonis(dataREL.c ~ slope + molecule, strata=paired, method="bray", permutations=1000)
+adonis(dataREL.l ~ slope + molecule, strata=paired, method="bray", permutations=99000)
   
 varpart(dataREL,  ~ slope, ~ molecule)
 
