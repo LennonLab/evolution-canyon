@@ -17,6 +17,6 @@ unique.seqs(fasta=EC.trim.contigs.good.unique.good.filter.fasta, count=EC.trim.c
 summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.unique.fasta, count=EC.trim.contigs.good.unique.good.filter.count_table, processors=32)
 pre.cluster(fasta=EC.trim.contigs.good.unique.good.filter.unique.fasta, count=EC.trim.contigs.good.unique.good.filter.count_table, diffs=2, processors=1)
 summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.unique.precluster.fasta, count=EC.trim.contigs.good.unique.good.filter.unique.precluster.count_table, processors=8)
-chimera.uchime(fasta=EC.trim.contigs.good.unique.good.filter.unique.precluster.fasta, count=EC.trim.contigs.good.unique.good.filter.unique.precluster.count_table, dereplicate=T, processors=8)
+chimera.uchime(fasta=EC.trim.contigs.good.unique.good.filter.unique.precluster.fasta, reference=silva.gold.align, processors=8)
 remove.seqs(fasta=EC.trim.contigs.good.unique.good.filter.unique.precluster.fasta, count=EC.trim.contigs.good.unique.good.filter.unique.precluster.count_table, accnos=EC.trim.contigs.good.unique.good.filter.unique.precluster.ref.uchime.accnos)
 summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.unique.precluster.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.unique.precluster.pick.count_table, processors=8)
