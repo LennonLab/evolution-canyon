@@ -9,4 +9,4 @@ module load intel
 module load python
 now=$(date +"%Y%m%d")
 cd /N/dc2/projects/Lennon_Sequences/2015_EvolutionCanyonBIDE/
-python ./models/ECmodel.py >> ECmodel_$now.log
+python ./models/ECmodel.py >> ./logs/ECmodel_$now.log
