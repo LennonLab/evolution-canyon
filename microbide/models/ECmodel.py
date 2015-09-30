@@ -4,7 +4,7 @@ import EClandscape as land
 import ECMicrobideCore as model
 import ECfunctions as funx
 
-mypath = os.path.realpath(__file__)
+mypath = os.path.dirname(os.path.realpath(__file__))
 path = mypath + '/SbyS/'
 #path = '~Desktop/evolution-canyon/microbide/SbyS/'
 #path = '/N/dc2/projects/Lennon_Sequences/2015_EvolutionCanyonBIDE/SbyS/'
