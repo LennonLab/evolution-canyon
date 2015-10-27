@@ -1,11 +1,16 @@
 from __future__ import division
-from multiprocessing import Pool # Python tool for parallelizing
-import sys, csv
-
+import sys, csv, os, time
+import multiprocessing # Python tool for parallelizing
 import EClandscape as land
 import ECMicrobideCore as model
 import ECfunctions as funx
 
+mypath = os.path.dirname(os.path.realpath(__file__))
+path = os.path.join(os.path.split(mypath)[0], 'SbyS')
+cores = multiprocessing.cpu_count()
+
+print('Output Path = '+str(path))
+print('Available Cores = '+str(cores))
 
 ###########################  GET CONDITIONS  ###################################
 
@@ -60,7 +65,8 @@ def worker(combo):
 
     condition, envDiff, enterD, exitD = combo
 
-    combo.pop(0)
+    combo.pop(0) # removes first element of combo (i.e., condition)
+
     landscapeLists = land.get_landscape(combo) # characterizing the landscape
 
     NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
@@ -89,10 +95,9 @@ def worker(combo):
 
         r1 = r2
 
-    path = '/N/dc2/projects/Lennon_Sequences/2014_EvolutionCanyon/microbide/SbyS/'
+    fileName = os.path.join(path, 'Condition'+str(condition))
+    OUT = open(fileName + '.txt','w')
 
-    fileName = 'Condition'+str(condition)
-    OUT = open(path + fileName + '.txt','w')
     writer = csv.writer(OUT, delimiter='\t')
 
     linedata = ['label', 'Group', 'numOtus']
@@ -112,7 +117,26 @@ def worker(combo):
 
     return
 
-pool = Pool()
-pool.map(worker, conditions)
-pool.close()
-#pool.join()
+if __name__ == '__main__':
+    #pool = multiprocessing.Pool()
+    #pool.map(worker, conditions)
+    #pool.close()
+    #pool.join()
+
+
+    # Parallel map
+    tic = time.time()
+    results = pool.map(worker, conditions)
+    toc = time.time()
+
+    #pool.join()
+
+    # Serial map
+    #tic2 = time.time()
+    #results = map(worker, conditions)
+    #toc2 = time.time()
+
+    #print('Parallel processing time: %r\nSerial processing time: %r'
+	#  % (toc - tic, toc2 - tic2))
+
+    print('Parallel processing time: %r' (toc - tic))

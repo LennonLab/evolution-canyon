@@ -5,8 +5,9 @@ import EClandscape as land
 import ECMicrobideCore as model
 import ECfunctions as funx
 
-mypath = os.path.realpath(__file__)
-path = mypath + '/SbyS/'
+mypath = os.path.dirname(os.path.realpath(__file__))
+path = os.path.join(os.path.split(mypath)[0], 'SbyS')
+print('Output Path = '+str(path))
 
 ###########################  GET CONDITIONS  ###################################
 
@@ -89,8 +90,8 @@ for ic, combo in enumerate(conditions):
 
         r1 = r2
 
-    fileName = 'Condition'+str(ic+1)
-    OUT = open(path + fileName + '.txt','w')
+    fileName = os.path.join(path , 'Condition'+str(ic+1))
+    OUT = open(fileName + '.txt','w')
     writer = csv.writer(OUT, delimiter='\t')
 
     linedata = ['label', 'Group', 'numOtus']
