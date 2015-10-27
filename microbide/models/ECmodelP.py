@@ -5,15 +5,12 @@ import EClandscape as land
 import ECMicrobideCore as model
 import ECfunctions as funx
 
-<<<<<<< HEAD
 mypath = os.path.dirname(os.path.realpath(__file__))
 path = os.path.join(os.path.split(mypath)[0], 'SbyS')
 cores = multiprocessing.cpu_count()
 
 print('Output Path = '+str(path))
 print('Available Cores = '+str(cores))
-=======
->>>>>>> upstream/master
 
 ###########################  GET CONDITIONS  ###################################
 
@@ -68,12 +65,8 @@ def worker(combo):
 
     condition, envDiff, enterD, exitD = combo
 
-<<<<<<< HEAD
     combo.pop(0) # removes first element of combo (i.e., condition)
 
-=======
-    combo.pop(0)
->>>>>>> upstream/master
     landscapeLists = land.get_landscape(combo) # characterizing the landscape
 
     NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
@@ -102,15 +95,9 @@ def worker(combo):
 
         r1 = r2
 
-<<<<<<< HEAD
     fileName = os.path.join(path, 'Condition'+str(condition))
     OUT = open(fileName + '.txt','w')
-=======
-    path = '/N/dc2/projects/Lennon_Sequences/2014_EvolutionCanyon/microbide/SbyS/'
 
-    fileName = 'Condition'+str(condition)
-    OUT = open(path + fileName + '.txt','w')
->>>>>>> upstream/master
     writer = csv.writer(OUT, delimiter='\t')
 
     linedata = ['label', 'Group', 'numOtus']
@@ -130,7 +117,6 @@ def worker(combo):
 
     return
 
-<<<<<<< HEAD
 if __name__ == '__main__':
     #pool = multiprocessing.Pool()
     #pool.map(worker, conditions)
@@ -154,9 +140,3 @@ if __name__ == '__main__':
 	#  % (toc - tic, toc2 - tic2))
 
     print('Parallel processing time: %r' (toc - tic))
-=======
-pool = Pool()
-pool.map(worker, conditions)
-pool.close()
-#pool.join()
->>>>>>> upstream/master
