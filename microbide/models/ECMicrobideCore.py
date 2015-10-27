@@ -44,7 +44,7 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic):
     for t in range(10**7):
 
         """ Immigration """
-        p = 0.9999999999999
+        p = 0.999999
         # p = probability of an individual immigrating, 0.0 means that
         # immigration has been 'turned off'
 

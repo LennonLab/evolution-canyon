@@ -1,12 +1,19 @@
 from __future__ import division
 import sys, csv, os
+
 import EClandscape as land
 import ECMicrobideCore as model
 import ECfunctions as funx
 
+<<<<<<< HEAD
 mypath = os.path.dirname(os.path.realpath(__file__))
 path = os.path.join(os.path.split(mypath)[0], 'SbyS')
 print('Output Path = '+str(path))
+=======
+mypath = os.path.realpath(__file__)
+path = mypath + '/SbyS/'
+
+>>>>>>> upstream/master
 ###########################  GET CONDITIONS  ###################################
 
 """ Code to runs the microbide model and generates site-by-species matrices."""
