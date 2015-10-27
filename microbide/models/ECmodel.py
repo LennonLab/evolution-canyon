@@ -1,14 +1,12 @@
 from __future__ import division
 import sys, csv, os
+
 import EClandscape as land
 import ECMicrobideCore as model
 import ECfunctions as funx
 
 mypath = os.path.realpath(__file__)
 path = mypath + '/SbyS/'
-#path = '~Desktop/evolution-canyon/microbide/SbyS/'
-#path = '/N/dc2/projects/Lennon_Sequences/2015_EvolutionCanyonBIDE/SbyS/'
-#path = '~Desktop/evolution-canyon/microbide/SbyS/'
 
 ###########################  GET CONDITIONS  ###################################
 
