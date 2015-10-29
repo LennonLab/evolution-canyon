@@ -1,5 +1,5 @@
 from __future__ import division
-import sys, csv, os, time
+import sys, csv, os, time, datetime
 import multiprocessing # Python tool for parallelizing
 import EClandscape as land
 import ECMicrobideCore as model
@@ -9,6 +9,7 @@ mypath = os.path.dirname(os.path.realpath(__file__))
 path = os.path.join(os.path.split(mypath)[0], 'SbyS')
 cores = multiprocessing.cpu_count()
 
+print(datetime.date.today())
 print('Output Path = '+str(path))
 print('Available Cores = '+str(cores))
 
@@ -17,14 +18,16 @@ print('Available Cores = '+str(cores))
 """ Code to run the microbide model and generates site-by-species matrices."""
 
 num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
-lgp = 0.92 # log-series parameter; underlying structure of regional pool
+lgp = 0.99 # log-series parameter; underlying structure of regional pool
+N = 2 * 10**6 # Starting total abundance across the landscape
+T = 10**5 # Time parameter
 
-conditions = [[1, 'same', 'rand', 'rand'],
-             [2, 'differ', 'rand', 'rand'],
-             [3, 'same',  'env',  'env'],
-             [4, 'differ', 'rand', 'env'],
-             [5, 'differ', 'env',  'rand'],
-             [6, 'differ',  'env', 'env']]
+conditions = [[0, 'same', 'rand', 'rand'],
+             [1, 'differ', 'rand', 'rand'],
+             [2, 'same',  'env',  'env'],
+             [3, 'differ', 'rand', 'env'],
+             [4, 'differ', 'env',  'rand'],
+             [5, 'differ',  'env', 'env']]
 
 """ conditions is a list of modeling parameters for different conceptual
     predictions representing extreme ends of a continuum of possible differences
@@ -72,7 +75,7 @@ def worker(combo):
     NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
     SRow2Ys, Ncounts, Nverts, Scounts, Sverts = landscapeLists[1]
 
-    COM = model.microbide(combo, Ncounts, Nverts, Scounts, Sverts, condition)
+    COM = model.microbide(combo, Ncounts, Nverts, Scounts, Sverts, N, T, condition)
                             # run the model & return the communities
 
     nCOM, sCOM = funx.SpeciesInPatches(COM, NRowXs, NRow1Ys, NRow2Ys,
@@ -95,7 +98,7 @@ def worker(combo):
 
         r1 = r2
 
-    fileName = os.path.join(path, 'Condition'+str(condition))
+    fileName = os.path.join(path, 'Condition'+str(condition+1))
     OUT = open(fileName + '.txt','w')
 
     writer = csv.writer(OUT, delimiter='\t')
@@ -118,25 +121,19 @@ def worker(combo):
     return
 
 if __name__ == '__main__':
-    #pool = multiprocessing.Pool()
-    #pool.map(worker, conditions)
-    #pool.close()
-    #pool.join()
-
+    pool = multiprocessing.Pool()
 
     # Parallel map
     tic = time.time()
     results = pool.map(worker, conditions)
     toc = time.time()
 
-    #pool.join()
+    pool.map()
+    pool.join()
 
     # Serial map
     #tic2 = time.time()
     #results = map(worker, conditions)
     #toc2 = time.time()
 
-    #print('Parallel processing time: %r\nSerial processing time: %r'
-	#  % (toc - tic, toc2 - tic2))
-
-    print('Parallel processing time: %r' (toc - tic))
+    print 'Parallel processing time: ', str(round((toc-tic)/60, 1)), ' minutes'

@@ -7,7 +7,7 @@ import ECfunctions as funx
 
 def immigration(envDiff, COM, oDict1, oDict2, dDict, im):
 
-    propagules = np.random.logseries(0.92, im)  # list of propagules
+    propagules = np.random.logseries(0.99, im)  # list of propagules
     for p in propagules:
         if p not in oDict1:
 
@@ -29,7 +29,7 @@ def immigration(envDiff, COM, oDict1, oDict2, dDict, im):
 
 
 ######################### COMMUNITY SIMULATION FUNCTION ########################
-def microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic):
+def microbide(combo, Ncounts, Nverts, Scounts, Sverts, N, T, ic):
 
     envDiff, enterD, exitD = combo
 
@@ -38,10 +38,10 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic):
 
     oDict1, oDict2, dDict, COM = [ {}, {}, {}, [] ]
 
-    N = 2 * 10**6 # Starting total abundance across the landscape
+    # N = 2 * 10**6 # Starting total abundance across the landscape
     COM = immigration(envDiff, COM, oDict1, oDict2, dDict, N)
 
-    for t in range(10**7):
+    for t in range(T):
 
         """ Immigration """
         p = 0.999999
@@ -140,6 +140,11 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic):
 
         t += 1
         if t%1000 == 0:
-            print 'condition',ic+1,' time:',t, 'N:', len(COM)
+
+            Slist = []
+            for i, ind in enumerate(COM):
+                Slist.append(ind[0])
+
+            print 'condition',ic+1,' time:',t, 'N:', len(COM), "S:", len(list(set(Slist)))
 
     return COM
