@@ -128,8 +128,8 @@ if __name__ == '__main__':
     results = pool.map(worker, conditions)
     toc = time.time()
 
-    pool.map()
     pool.join()
+    pool.close()
 
     # Serial map
     #tic2 = time.time()
