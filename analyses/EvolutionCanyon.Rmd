@@ -54,77 +54,97 @@ Ordination of simulated data capturing processes/scenarios described in Fig. 1. 
 
 
 ```{r}
-source("../bin/ec.pcoa.R")
-input <- list.files("../microbide/SbyS/", "*.txt")
+source("../bin/ec.dbRDA.R")
+input <- list.files("../microbide/SbyS/20140805/", "*.txt")
 
 # Create Blank Output
-pcoa.output <- list()
+dbRDA.output <- list()
 
 # Run PCoA On All Samples
 for (i in 1:length(input)){
-  pcoa.output[[input[i]]] = ec.pcoa.fun(shared = paste("../microbide/SbyS/", 
+  dbRDA.output[[input[i]]] = ec.dbRDA.sim(shared = paste("../microbide/SbyS/20140805/", 
                                              input[i], sep=""), 
-                                             cutoff = "0.03", 
+                                             level = "0.03", 
                                              design = "../data/simmy.design.txt")
   }
 
-layout(matrix(1:6, 3, 2, byrow=T), width = 3, height = 3)
+
+
+# Plot Parameters
+par(mfrow=c(1,1), mar=c(0.5,0.5,0,0), oma=c(5, 5, 1, 1))
+layout(matrix(c(7, 7, 1:6), 4, 2, byrow=T), heights=c(1, rep(4, 3)))
+
+labs <- c("A)", "B)", "C)", "D)", "E)", "F)")
+x.lab <- c(F, F, F, F, T, T)
+y.lab <- c(T, F, T, F, T, F)
 
 # Plot Each
-for (i in 1:length(pcoa.output)){
-  
-  
-  # Plot Parameters
-  par(mfrow=c(1,1), mar=c(5,5,1,1))
-  layout(rbind(1, 2), height=c(7, 1))
-  x.dim <- c(min(pcoap$V2)+min(pcoap$V2)*0.2,max(pcoap$V2)+max(pcoap$V2)*0.2)
-  y.dim <- c(min(pcoap$V1)+min(pcoap$V1)*0.2,max(pcoap$V1)+max(pcoap$V1)*0.2)
+for (p in 1:length(dbRDA.output)){
+  RDA <- dbRDA.output[[p]]$RDA
+  explainvar1 <- dbRDA.output[[p]]$explainvar1
+  explainvar2 <- dbRDA.output[[p]]$explainvar2
+
+  x.dim <- c(-0.4, 0.4)
+  y.dim <- c(-0.4, 0.4)
 
   # Initiate Plot
-  plot(pcoap$V2, pcoap$V1, xlab=paste("PCoA Axis 2 (",explainvar2, "%)", sep="")
-    , ylab=paste("PCoA Axis 1 (",explainvar1, "%)", sep=""),
+  plot(RDA$CAP2, RDA$CAP1, xlab = "", ylab="",
     xlim=x.dim,ylim= y.dim, pch=16, cex=2.0, type="n",xaxt="n",
     yaxt="n", cex.lab=1.5, cex.axis=1.2)
-  axis(side=1, las=1)
-  axis(side=2, las=1)
+
+  axis(side=1, las=1, label=x.lab[p], lwd.ticks = 2)
+  axis(side=2, las=1, label=y.lab[p], lwd.ticks = 2)
+  axis(side = 1, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1) 
+  axis(side = 2, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
+  axis(side = 3, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)     
+  axis(side = 4, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
   abline(h=0, lty="dotted")
   abline(v=0, lty="dotted")
-  mol.shape <- rep(NA, dim(pcoap)[1])
+  mol.shape <- rep(NA, dim(RDA)[1])
     for (i in 1:length(mol.shape)){
-      if (pcoap$molecule[i] == "DNA"){mol.shape[i] = 21}
+      if (RDA$molecule[i] == "DNA"){mol.shape[i] = 21}
       else {mol.shape[i] = 22}
       }
-  slope.color <- rep(NA, dim(pcoap)[1])
+  slope.color <- rep(NA, dim(RDA)[1])
     for (i in 1:length(slope.color)){
-      if (pcoap$slope[i] == levels(pcoap$slope)[1]) {slope.color[i] = "brown"}
+      if (RDA$slope[i] == levels(RDA$slope)[1]) {slope.color[i] = "wheat3"}
       else {slope.color[i] = "green3"}
       }
-  points(pcoap$V2, pcoap$V1, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
-  ordiellipse(cbind(pcoap$V2, pcoap$V1), pcoap$slope.molecule, kind="sd", conf=0.95,
-    lwd=2, lty=3, draw = "lines", col = "black", label=TRUE)
-  # legend("topleft", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""),
-  #   paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""),
-  #   paste("Active; ",levels(pcoap$slope)[1]," Slope", sep=""),
-  #   paste("Active; ",levels(pcoap$slope)[2]," Slope", sep="")),
-  #   pt.lwd=2, col="black", pt.bg=c("brown3", "green3", "brown3",
-  #   "green3"), pch=c(21,21,22,22), bty='o', box.lty=0, bg="white", cex=1.5)
+  points(RDA$CAP2, RDA$CAP1, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
   box(lwd=2)
-  par(mar=c(0, 3, 0, 0))
+  
+  text(x = -0.38, y = 0.34, labs[p], cex = 1.5)
+}
+  
+mtext("Axis 2", side = 1, cex = 1.5, outer=T, line = 2.5)
+mtext("Axis 1", side = 2, cex = 1.5, outer=T, line = 2.5) 
+  
+  # Legend
+  par(mar=c(0, 0, 0, 0))
   plot.new()
   legend("center", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""),
     paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""),
     paste("Active; ",levels(pcoap$slope)[1]," Slope", sep=""),
     paste("Active; ",levels(pcoap$slope)[2]," Slope", sep="")),
-    pt.lwd=2, col="black", pt.bg=c("brown", "green3", "brown",
-    "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=1.5, pt.cex=2)
-
-
-
-
+    pt.lwd=2, col="black", pt.bg=c("wheat3", "green3", "wheat3",
+    "green3"), pch=c(21,21,22,22), bty='n', ncol=4, cex=1.2, pt.cex=2)  
+ 
   
   
   
-}
+  
+  
+  
+  # Distance Based Redundancy Analysis
+  dbRDA <- capscale(dataREL ~ slope + molecule+ Condition(paired), distance="bray") 
+  
+#   legend("center", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""),
+#     paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""),
+#     paste("Active; ",levels(pcoap$slope)[1]," Slope", sep=""),
+#     paste("Active; ",levels(pcoap$slope)[2]," Slope", sep="")),
+#     pt.lwd=2, col="black", pt.bg=c("brown", "green3", "brown",
+#     "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=1.5, pt.cex=2)  
+  
 
 ```
 
