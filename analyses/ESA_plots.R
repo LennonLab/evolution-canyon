@@ -83,7 +83,7 @@ png(file="./plots/Condition1_ESA.png",
   explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
   explainvar2 <- round(dbRDA$CCA$eig[2]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
 
-  RDA <- as.data.frame(dbRDA$CCA$wa.eig)
+  RDA <- as.data.frame(dbRDA$CCA$wa)
   RDA$molecule <- design$molecule
   RDA$slope <- design$slope
   RDA$labs <- slope.molecule.concat
@@ -93,8 +93,8 @@ png(file="./plots/Condition1_ESA.png",
   par(mfrow=c(1,1), mar=c(5,6,1,1))
 
   # Initiate Plot
-  plot(RDA$RDA1, RDA$RDA2,
-    xlim = c(-0.1, 0.1),ylim= c(-0.1, 0.1), pch=16, cex=2.0,
+  plot(RDA$CAP1, RDA$CAP2,
+    xlim = c(-0.1, 0.1),ylim= c(-1, 1), pch=16, cex=2.0,
     type="n",ann=FALSE, xaxt="n", yaxt = "n", cex.lab=1.5, cex.axis=1.2)
   axis(side=1, las=1)
   axis(side=2, las=1)
@@ -113,8 +113,8 @@ png(file="./plots/Condition1_ESA.png",
       if (RDA$slope[i] == "North") {slope.color[i] = "brown"}
       else {slope.color[i] = "green3"}
     }
-  points(RDA$RDA1, RDA$RDA2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
-  ordiellipse(cbind(RDA$RDA1, RDA$RDA2), RDA$labs, kind="sd", conf=0.95,
+  points(RDA$CAP1, RDA$CAP2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
+  ordiellipse(cbind(RDA$CAP1, RDA$CAP2), RDA$labs, kind="sd", conf=0.95,
     lwd=2, lty=3, draw = "lines", col = "black", label=FALSE)
 
 dev.off()

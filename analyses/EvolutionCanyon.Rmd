@@ -1,0 +1,207 @@
+---
+title: "Evolution Canyon"
+author: "Jay T. Lennon, Kenneth J. Locey, & Mario E. Muscarella"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes:
+   - \usepackage{array}
+   - \usepackage{graphics}
+output:
+  pdf_document:
+    fig_caption: true
+---
+
+Dormancy, dispersal, and environmental filtering at "Evolution Canyon"
+
+Brief Description
+
+
+# Initial Setup
+```{r results='hide', message=FALSE}
+rm(list=ls())
+getwd()
+setwd("~/GitHub/evolution-canyon/analyses")
+
+# Import Required Packages
+require("png")
+require("grid")
+require("vegan")
+```
+
+
+# Figure 1: Conceptual model/theory and predictions of how environmental filtering and dormancy influence community assembly (with dispersal being implicit and more or less high) 
+
+**Jay is updating this**
+
+```{r fig.width=2, fig.height=4,echo=FALSE,fig.cap="Figure 1: Conceptual Model"}
+img <- readPNG("../figures/ConceptualModel.png")
+grid.raster(img)
+```
+
+
+# Figure 2: Photo of EC and simulation of EC-like landscape
+
+```{r fig.width=2, fig.height=4,echo=FALSE,fig.cap="Figure 1: Conceptual Model"}
+img1 <- readPNG("../figures/ECLandscape.png")
+img2 <- readPNG("../figures/BIDELandscape.png")
+grid.newpage()
+grid.raster(img1, x=0.5, y = 0.75, width=0.5)
+grid.raster(img2, x = 0.5, y = 0.35, width=0.5)
+```
+
+# Figure 3: BIDE Model Ordinations
+
+Ordination of simulated data capturing processes/scenarios described in Fig. 1. Here, we only have models 1, 2, 3, and 6; missing models 4 and 5. Can these other scenarios be captures with simplex?
+
+
+```{r}
+source("../bin/ec.dbRDA.R")
+input <- list.files("../microbide/SbyS/20140805/", "*.txt")
+
+# Create Blank Output
+dbRDA.output <- list()
+
+# Run PCoA On All Samples
+for (i in 1:length(input)){
+  dbRDA.output[[input[i]]] = ec.dbRDA.sim(shared = paste("../microbide/SbyS/20140805/", 
+                                             input[i], sep=""), 
+                                             level = "0.03", 
+                                             design = "../data/simmy.design.txt")
+  }
+
+
+
+# Plot Parameters
+par(mfrow=c(1,1), mar=c(0.5,0.5,0,0), oma=c(5, 5, 1, 1))
+layout(matrix(c(7, 7, 1:6), 4, 2, byrow=T), heights=c(1, rep(4, 3)))
+
+labs <- c("A)", "B)", "C)", "D)", "E)", "F)")
+x.lab <- c(F, F, F, F, T, T)
+y.lab <- c(T, F, T, F, T, F)
+
+# Plot Each
+for (p in 1:length(dbRDA.output)){
+  RDA <- dbRDA.output[[p]]$RDA
+  explainvar1 <- dbRDA.output[[p]]$explainvar1
+  explainvar2 <- dbRDA.output[[p]]$explainvar2
+
+  x.dim <- c(-0.4, 0.4)
+  y.dim <- c(-0.4, 0.4)
+
+  # Initiate Plot
+  plot(RDA$CAP2, RDA$CAP1, xlab = "", ylab="",
+    xlim=x.dim,ylim= y.dim, pch=16, cex=2.0, type="n",xaxt="n",
+    yaxt="n", cex.lab=1.5, cex.axis=1.2)
+
+  axis(side=1, las=1, label=x.lab[p], lwd.ticks = 2)
+  axis(side=2, las=1, label=y.lab[p], lwd.ticks = 2)
+  axis(side = 1, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1) 
+  axis(side = 2, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
+  axis(side = 3, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)     
+  axis(side = 4, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
+  abline(h=0, lty="dotted")
+  abline(v=0, lty="dotted")
+  mol.shape <- rep(NA, dim(RDA)[1])
+    for (i in 1:length(mol.shape)){
+      if (RDA$molecule[i] == "DNA"){mol.shape[i] = 21}
+      else {mol.shape[i] = 22}
+      }
+  slope.color <- rep(NA, dim(RDA)[1])
+    for (i in 1:length(slope.color)){
+      if (RDA$slope[i] == levels(RDA$slope)[1]) {slope.color[i] = "wheat3"}
+      else {slope.color[i] = "green3"}
+      }
+  points(RDA$CAP2, RDA$CAP1, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
+  box(lwd=2)
+  
+  text(x = -0.38, y = 0.34, labs[p], cex = 1.5)
+}
+  
+mtext("Axis 2", side = 1, cex = 1.5, outer=T, line = 2.5)
+mtext("Axis 1", side = 2, cex = 1.5, outer=T, line = 2.5) 
+  
+  # Legend
+  par(mar=c(0, 0, 0, 0))
+  plot.new()
+  legend("center", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""),
+    paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""),
+    paste("Active; ",levels(pcoap$slope)[1]," Slope", sep=""),
+    paste("Active; ",levels(pcoap$slope)[2]," Slope", sep="")),
+    pt.lwd=2, col="black", pt.bg=c("wheat3", "green3", "wheat3",
+    "green3"), pch=c(21,21,22,22), bty='n', ncol=4, cex=1.2, pt.cex=2)  
+ 
+  
+  
+  
+  
+  
+  
+  # Distance Based Redundancy Analysis
+  dbRDA <- capscale(dataREL ~ slope + molecule+ Condition(paired), distance="bray") 
+  
+#   legend("center", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""),
+#     paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""),
+#     paste("Active; ",levels(pcoap$slope)[1]," Slope", sep=""),
+#     paste("Active; ",levels(pcoap$slope)[2]," Slope", sep="")),
+#     pt.lwd=2, col="black", pt.bg=c("brown", "green3", "brown",
+#     "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=1.5, pt.cex=2)  
+  
+
+```
+
+```{r}
+
+
+```
+
+# Multivariate Analysis of BIDE Simulations
+
+A general discussion that the simulations agreed with theory outlined in Fig. 1. 
+Will reference ordinations and PCoA. 
+Discussed Table 1 having summary data from the PERMANOVA results.
+
+```{r}
+input <- list.files("../microbide/SbyS/", "*.txt")
+
+permanova.output <- list()
+
+require(vegan)
+
+for (i in c(1, 3:length(input))){
+  shared <- paste("../microbide/SbyS/", input[i], sep="")
+  design <- "../data/simmy.design.txt"
+  sbys.in <- read.otu(shared, "0.03")
+  design.in <- read.delim(design, header=T, row.names=1)
+  
+  # Remove any OTUs with <2 OTUs
+  sbys.red <- ec_data[which(colSums(sbys.in) >= 2),]
+  
+  # Relative Abundances
+  sbysREL <- sbys.red
+  for(j in 1:nrow(sbys.red)){
+    sbysREL[j,] = sbys.red[j,]/sum(sbys.red[j,])
+  }
+  
+  
+  # Log Transformation
+  sbysREL.log <- decostand(sbysREL, method="log")
+
+  Adonis.b <- adonis(sbysREL ~ design.in$molecule * design.in$slope)
+  
+  permanova.output[[input[i]]] = Adonis.b
+  
+}
+
+
+
+```
+
+# Figure 4: Emperical Data
+
+Ordination of empirical data consistent with the view that non-random entrance and exiting from dormancy on top of environmental filtering influence community assembly
+
+```{r}
+
+
+
+```
+
