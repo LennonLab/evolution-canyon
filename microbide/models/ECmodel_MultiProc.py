@@ -19,7 +19,7 @@ print('Available Cores = '+str(cores))
 
 num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
 lgp = 0.99 # log-series parameter; underlying structure of regional pool
-N = 2 * 10**6 # Starting total abundance across the landscape
+N = 2 * 10**5 # Starting total abundance across the landscape
 T = 10**5 # Time parameter
 
 conditions = [[0, 'same', 'rand', 'rand'],
