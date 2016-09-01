@@ -126,13 +126,13 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
 
   # Calculate Presense Absence
   dataPA <- (ec_data_red > 0)*1
-
+  
   # Calculating Relative Abundance
   dataREL <- ec_data_red
   for(i in 1:nrow(ec_data_red)){
     dataREL[i,] = ec_data_red[i,]/sum(ec_data_red[i,])
-    }
-
+  }
+  
   # Log Transform Relative Abundance
   dataREL.l <- decostand(dataREL,method="log")
 
@@ -142,12 +142,8 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
   # Hellinger Transformation
   dataREL.h <- decostand(dataREL, method="hellinger")
 
-  # Create Distance Matrix with bray (deafault)
-  sampleREL.dist <- vegdist(dataREL,method="bray")
-
   # Distance Based Redundancy Analysis
-  # dbRDA <- capscale(dataREL.l ~ slope + molecule, distance="bray")
-  dbRDA <- capscale(dataREL.l ~ slope + molecule + Condition(paired), distance="bray")
+  dbRDA <- capscale(dataREL ~ slope + molecule+ Condition(paired), distance="bray")
 
 #   head(summary(dbRDA))
 #   anova(dbRDA, by="terms", permu=999)
