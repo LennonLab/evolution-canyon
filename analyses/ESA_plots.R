@@ -44,7 +44,7 @@ png(file="./plots/Condition1_ESA.png",
     width=1200, height=1200, antialias = "cleartype", res=96*2)
 
   # Inputs
-  shared     = "./microbide/SbyS/Condition1.txt"
+  shared     = "./data/Condition1.txt"
   cutoff     = "0.03"
   design     = "./data/simmy.design.txt"
 
@@ -94,7 +94,7 @@ png(file="./plots/Condition1_ESA.png",
 
   # Initiate Plot
   plot(RDA$CAP1, RDA$CAP2,
-    xlim = c(-0.1, 0.1),ylim= c(-1, 1), pch=16, cex=2.0,
+    xlim = c(-0.4, 0.4),ylim= c(-0.4, 0.4), pch=16, cex=2.0,
     type="n",ann=FALSE, xaxt="n", yaxt = "n", cex.lab=1.5, cex.axis=1.2)
   axis(side=1, las=1)
   axis(side=2, las=1)
@@ -164,7 +164,7 @@ png(file="./plots/Condition2_ESA.png",
   explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
   explainvar2 <- round(dbRDA$CCA$eig[2]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
 
-  RDA <- as.data.frame(dbRDA$CCA$wa.eig)
+  RDA <- as.data.frame(dbRDA$CCA$wa)
   RDA$molecule <- design$molecule
   RDA$slope <- design$slope
   RDA$labs <- slope.molecule.concat
@@ -194,8 +194,8 @@ png(file="./plots/Condition2_ESA.png",
       if (RDA$slope[i] == "North") {slope.color[i] = "brown"}
       else {slope.color[i] = "green3"}
     }
-  points(RDA$RDA1, RDA$RDA2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
-  ordiellipse(cbind(RDA$RDA1, RDA$RDA2), RDA$labs, kind="sd", conf=0.95,
+  points(RDA$CAP1, RDA$CAP2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
+  ordiellipse(cbind(RDA$CAP1, RDA$CAP2), RDA$labs, kind="sd", conf=0.95,
     lwd=2, lty=3, draw = "lines", col = "black", label=FALSE)
 
 dev.off()
@@ -368,7 +368,7 @@ dev.off()
 # Plot 6 - Emperical Data #########################################################
 
   # Inputs
-  shared <- "./mothur/EC.bac.final.shared"
+  shared <- "./data/mothur/EC.bac.final.shared"
   design <- "./data/design.txt"
   level  <-  "0.03"
 
@@ -429,7 +429,7 @@ dataREL <- ec_data_red
   explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
   explainvar2 <- round(dbRDA$CCA$eig[2]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
 
-  RDA <- as.data.frame(dbRDA$CCA$wa.eig)
+  RDA <- as.data.frame(dbRDA$CCA$wa)
   RDA$molecule <- design_red$molecule
   RDA$slope <- design_red$slope
   RDA$labs <- slope.molecule.concat
@@ -442,7 +442,7 @@ png(file="./plots/Emperical_ESA.png",
 
   # Initiate Plot
   plot(RDA$RDA1, RDA$RDA2,
-    xlim = c(-0.2, 0.2),ylim= c(-0.2, 0.2), pch=16, cex=2.0,
+    xlim = c(-0.4, 0.4),ylim= c(-0.4, 0.4), pch=16, cex=2.0,
     type="n",ann=FALSE, xaxt="n", yaxt = "n", cex.lab=1.5, cex.axis=1.2)
   axis(side=1, las=1)
   axis(side=2, las=1)
@@ -461,9 +461,9 @@ png(file="./plots/Emperical_ESA.png",
       if (RDA$slope[i] == "AF") {slope.color[i] = "brown"}
       else {slope.color[i] = "green3"}
     }
-  points(RDA$RDA1, RDA$RDA2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
+  points(RDA$CAP1, RDA$CAP2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
   #text(RDA$RDA1, RDA$RDA2, rownames(RDA))
-  ordiellipse(cbind(RDA$RDA1, RDA$RDA2), RDA$labs, kind="sd", conf=0.95,
+  ordiellipse(cbind(RDA$CAP1, RDA$CAP2), RDA$labs, kind="sd", conf=0.95,
     lwd=2, lty=3, draw = "lines", col = "black", label=FALSE)
 
 dev.off()

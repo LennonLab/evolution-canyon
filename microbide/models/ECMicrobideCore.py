@@ -7,7 +7,7 @@ import ECfunctions as funx
 
 def immigration(envDiff, COM, oDict1, oDict2, dDict, im):
 
-    propagules = np.random.logseries(0.99, im)  # list of propagules
+    propagules = np.random.logseries(0.92, im)  # list of propagules (was 0.99, 0.92 MEM)
     for p in propagules:
         if p not in oDict1:
 
@@ -44,7 +44,7 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, N, T, ic):
     for t in range(T):
 
         """ Immigration """
-        p = 0.999999
+        p = 0.999999  # 0.999999, 0.9999999999999
         # p = probability of an individual immigrating, 0.0 means that
         # immigration has been 'turned off'
 

@@ -15,6 +15,8 @@ print('Output Path = '+str(path))
 
 num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
 lgp = 0.92 # log-series parameter; underlying structure of regional pool
+N = 2 * 10**6 # Starting total abundance across the landscape
+T = 10**7 # Time parameter
 
 conditions = [['same', 'rand', 'rand'],
              ['differ', 'rand', 'rand'],
@@ -67,7 +69,7 @@ for ic, combo in enumerate(conditions):
     NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
     SRow2Ys, Ncounts, Nverts, Scounts, Sverts = landscapeLists[1]
 
-    COM = model.microbide(combo, Ncounts, Nverts, Scounts, Sverts, ic)
+    COM = model.microbide(combo, Ncounts, Nverts, Scounts, Sverts, N, T, ic)
                             # run the model & return the communities
 
     nCOM, sCOM = funx.SpeciesInPatches(COM, NRowXs, NRow1Ys, NRow2Ys,
