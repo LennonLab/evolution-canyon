@@ -7,7 +7,7 @@ header-includes:
    - \usepackage{graphics}
 output:
   pdf_document:
-    fig_caption: true
+  fig_caption: true
 ---
 
 Dormancy, dispersal, and environmental filtering at "Evolution Canyon"
@@ -55,15 +55,17 @@ Ordination of simulated data capturing processes/scenarios described in Fig. 1. 
 
 ```{r}
 source("../bin/ec.dbRDA.R")
-input <- list.files("../microbide/SbyS/20140804/", "*.txt")
+dir <- "../microbide/SbyS/"
+input <- list.files(dir, "*.txt")
+#input <- list.files("../microbide/SbyS/", "*.txt")
+#dir <- "../microbide/SbyS/"
 
 # Create Blank Output
 dbRDA.output <- list()
 
 # Run PCoA On All Samples
 for (i in 1:length(input)){
-  dbRDA.output[[input[i]]] = ec.dbRDA.sim(shared = paste("../microbide/SbyS/20140804/", 
-                                             input[i], sep=""), 
+  dbRDA.output[[input[i]]] = ec.dbRDA.sim(shared = paste(dir, input[i], sep=""), 
                                              level = "0.03", 
                                              design = "../data/simmy.design.txt")
   }
@@ -82,8 +84,8 @@ for (p in 1:length(dbRDA.output)){
   explainvar1 <- dbRDA.output[[p]]$explainvar1
   explainvar2 <- dbRDA.output[[p]]$explainvar2
 
-  x.dim <- c(-0.4, 0.4)
-  y.dim <- c(-0.4, 0.4)
+  x.dim <- c(-0.6, 0.6)
+  y.dim <- c(-0.5, 0.5)
 
   # Initiate Plot
   plot(RDA$CAP1, RDA$CAP2, xlab = "", ylab="",
@@ -111,7 +113,7 @@ for (p in 1:length(dbRDA.output)){
   points(RDA$CAP1, RDA$CAP2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
   box(lwd=2)
   
-  text(x = -0.38, y = 0.3, labs[p], cex = 1.5)
+  text(x = -0.58, y = 0.4, labs[p], cex = 1.5)
 }
   
 mtext("Axis 2", side = 1, cex = 1.5, outer=T, line = 2.5)
@@ -134,7 +136,7 @@ mtext("Axis 1", side = 2, cex = 1.5, outer=T, line = 2.5)
   
   
   # Distance Based Redundancy Analysis
-  dbRDA <- capscale(dataREL ~ slope + molecule+ Condition(paired), distance="bray") 
+  #dbRDA <- capscale(dataREL ~ slope + molecule+ Condition(paired), distance="bray") 
   
 #   legend("center", c(paste("All; ",levels(pcoap$slope)[1]," Slope", sep=""),
 #     paste("All; ",levels(pcoap$slope)[2]," Slope", sep=""),

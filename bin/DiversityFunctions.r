@@ -40,7 +40,7 @@ read.otu <- function(shared = " ",
   matrix <- read.delim(shared, header=T, as.is=T, colClasses=classes, comment.char="")
   matrix.cutoff <- subset(matrix, matrix$label == cutoff)
   matrix.out <- as.matrix(matrix.cutoff[1:dim(matrix.cutoff)[1],
-    4:(3+mean(matrix.cutoff$numOtus))])
+    4:(mean(cols))])
   row.names(matrix.out) <- matrix.cutoff$Group
   return(matrix.out)
   } 

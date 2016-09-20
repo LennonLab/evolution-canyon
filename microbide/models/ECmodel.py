@@ -16,7 +16,7 @@ print('Output Path = '+str(path))
 num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
 lgp = 0.92 # log-series parameter; underlying structure of regional pool
 N = 2 * 10**6 # Starting total abundance across the landscape
-T = 10**5 # Time parameter
+T = 10**7 # Time parameter
 
 conditions = [['same', 'rand', 'rand'],
              ['differ', 'rand', 'rand'],

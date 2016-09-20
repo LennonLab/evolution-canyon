@@ -143,7 +143,7 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
   dataREL.h <- decostand(dataREL, method="hellinger")
 
   # Distance Based Redundancy Analysis
-  dbRDA <- capscale(dataREL ~ slope + molecule+ Condition(paired), distance="bray")
+  dbRDA <- capscale(dataREL ~ slope + molecule + Condition(paired), distance="bray")
 
 #   head(summary(dbRDA))
 #   anova(dbRDA, by="terms", permu=999)
@@ -153,7 +153,8 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
   explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
   explainvar2 <- round(dbRDA$CCA$eig[2]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
 
-  RDA <- as.data.frame(dbRDA$CCA$wa)
+  #RDA <- as.data.frame(dbRDA$CCA$wa)
+  RDA <- as.data.frame(scores(dbRDA, display = c("wa"), scaling = "sites"))
   RDA$molecule <- design$molecule
   RDA$slope <- design$slope
   RDA$labs <- slope.molecule.concat
