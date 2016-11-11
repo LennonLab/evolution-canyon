@@ -7,14 +7,14 @@
 #                                                                              #
 #	Written by: Mario Muscarella                                                 #
 #                                                                              #
-#	Last update: 2014/08/04                                                      #
+#	Last update: 2016/11/11                                                      #
 #                                                                              #
 ################################################################################
 
 ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
 
-  source("bin/DiversityFunctions.r")
-  require(vegan)
+  source("../bin/DiversityFunctions.r")
+  require("vegan")
 
   # Import Site by OTU Matrix
   ec_data <- read.otu(shared, "0.03")
@@ -30,13 +30,13 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
   ec_data_red <- ec_data.tmp[,colSums(ec_data.tmp) >= 10]
 
   # design matrix w/o problem samples & pairs
-  design_red <- design[rownames(ec_data_red),]
-  design_red$paired <- c(rep(seq(1:14), each=2), rep(seq(1:19), each=2))
+  design_red <- design[which(rownames(design) %in% rownames(ec_data_red)),]
+  #design_red$paired <- c(rep(seq(1:14), each=2), rep(seq(1:19), each=2))
 
   # Create factors for model
   slope <- design_red$slope # factor 1
   molecule <- design_red$molecule # factor 2
-  paired <- design_red$paired
+  paired <- design_red$paired_across_slope
   site <- design_red$site
   station <- design_red$station
   slope.molecule <- data.frame(cbind(as.character(slope),
@@ -74,14 +74,27 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
   sampleREL.dist <- vegdist(dataHell,method="bray")
 
   # Distance Based Redundancy Analysis
-  dbRDA <- capscale(dataChord ~ slope + molecule + Condition(paired), distance="bray", comm=dataREL)
-
-  head(summary(dbRDA))
-
-  plot(dbRDA)
-  ordiellipse(dbRDA, groups=slope.molecule.concat, label=T, kind="sd", conf=0.95)
-
-  anova(dbRDA, by="terms", permu=500)
+  dbRDA <- capscale(dataChord ~ slope + molecule + Condition(paired), distance="bray")
+  
+  #   head(summary(dbRDA))
+  #   anova(dbRDA, by="terms", permu=999)
+  #   varpart(dataREL,  ~ slope, ~ molecule)
+  
+  # Percent Variance Explained Using PCoA (Axis 1,2,3)
+  explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+  explainvar2 <- round(dbRDA$CCA$eig[2]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+  
+  #RDA <- as.data.frame(dbRDA$CCA$wa)
+  RDA <- as.data.frame(scores(dbRDA, display = c("wa"), scaling = "sites"))
+  RDA$molecule <- molecule
+  RDA$slope <- slope
+  RDA$labs <- slope.molecule.concat
+  
+  RDA.out <- list("RDA" = RDA,
+                  "explainvar1" = explainvar1,
+                  "explainvar2" = explainvar2)
+  
+  return(RDA.out)
 
   }
 
