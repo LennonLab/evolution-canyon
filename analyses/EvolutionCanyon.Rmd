@@ -25,6 +25,12 @@ setwd("~/GitHub/evolution-canyon/analyses")
 require("png")
 require("grid")
 require("vegan")
+
+# Import Scripts
+source("../bin/ec.dbRDA.R")
+
+# Common Functions
+sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 ```
 
 
@@ -54,7 +60,6 @@ Ordination of simulated data capturing processes/scenarios described in Fig. 1. 
 
 
 ```{r}
-source("../bin/ec.dbRDA.R")
 dir <- "../microbide/SbyS/"
 input <- list.files(dir, "*.txt")
 input <- input[c(1, 2, 3, 6)]
@@ -67,13 +72,16 @@ for (i in 1:length(input)){
   dbRDA.output[[input[i]]] = ec.dbRDA.sim(shared = paste(dir, input[i], sep=""), 
                                              level = "0.03", 
                                              design = "../data/simmy.design.txt")
-  }
+}
+
+png(filename = "../figures/BIDE_Ordination.png", 
+    width = 1600, height = 1200, res = 96 * 2)
 
 # Plot Parameters
-par(mfrow=c(1,1), mar=c(0.5,0.5,0,0), oma=c(5, 5, 1, 1))
-layout(matrix(c(5, 5, 1:4), 3, 2, byrow=T), heights=c(1, rep(4, 2)))
+par(mfrow=c(1,1), mar=c(0.5,0.5,0,0), oma=c(6, 5, 1, 1))
+layout(matrix(c(5, 5, 1:4), 3, 2, byrow=T), heights=c(1, rep(5, 2)))
 
-labs <- c("A.", "B.", "C.", "D.", "E.", "F.")
+labs <- c("A", "B", "C", "D", "E", "F")
 x.lab <- c(F, F, T, T)
 y.lab <- c(T, F, T, F)
 
@@ -91,8 +99,8 @@ for (p in 1:length(dbRDA.output)){
     xlim=x.dim,ylim= y.dim, pch=16, cex=2.0, type="n",xaxt="n",
     yaxt="n", cex.lab=1.5, cex.axis=1.2)
 
-  axis(side=1, las=1, label=x.lab[p], lwd.ticks = 2)
-  axis(side=2, las=1, label=y.lab[p], lwd.ticks = 2)
+  axis(side=1, las=1, label=x.lab[p], lwd.ticks = 2, cex.axis = 1.25)
+  axis(side=2, las=1, label=y.lab[p], lwd.ticks = 2, cex.axis = 1.25)
   axis(side = 1, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1) 
   axis(side = 2, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
   axis(side = 3, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)     
@@ -112,28 +120,31 @@ for (p in 1:length(dbRDA.output)){
   points(RDA$CAP1, RDA$CAP2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
   box(lwd=2)
   
-  text(x = -0.58, y = 0.4, labs[p], cex = 1.5)
+  text(x = -0.58, y = 0.45, labs[p], cex = 1.5)
 }
   
-mtext("Axis 2", side = 1, cex = 1.5, outer=T, line = 2.5)
-mtext("Axis 1", side = 2, cex = 1.5, outer=T, line = 2.5) 
+mtext("Axis 2", side = 1, cex = 1.5, outer=T, line = 3)
+mtext("Axis 1", side = 2, cex = 1.5, outer=T, line = 3) 
   
 # Legend
 par(mar=c(0, 0, 0, 0))
 plot.new()
 legend("center", c(paste("All; ",levels(RDA$slope)[1]," Slope", sep=""),
       paste("All; ",levels(RDA$slope)[2]," Slope", sep=""),
-     paste("Active; ",levels(RDA$slope)[1]," Slope", sep=""),
-   paste("Active; ",levels(RDA$slope)[2]," Slope", sep="")),
-   pt.lwd=2, col="black", pt.bg=c("wheat3", "green3", "wheat3",
-   "green3"), pch=c(21,21,22,22), bty='n', ncol=4, cex=0.9, pt.cex=2)  
- 
+      paste("Active; ",levels(RDA$slope)[1]," Slope", sep=""),
+      paste("Active; ",levels(RDA$slope)[2]," Slope", sep="")),
+      pt.lwd=2, col="black", pt.bg=c("wheat3", "green3", "wheat3",
+      "green3"), pch=c(21,21,22,22), bty='n', ncol=4, cex=1.5, pt.cex=2)  
+
+# Close Plot Device
+dev.off()
+graphics.off()
 ```
 
-# Load Plot
+## Show Plot
 ```{r}
-
-
+img <- readPNG("../figures/BIDE_Ordination.png")
+grid.raster(img)
 ```
 
 # Multivariate Analysis of BIDE Simulations
@@ -166,13 +177,9 @@ for (i in c(1:length(input))){
   
   # Log Transformation
   sbysREL.log <- decostand(sbysREL, method="log")
-
   Adonis.b <- adonis(sbysREL.log ~ design.in$molecule * design.in$slope)
-  
   permanova.output[[input[i]]] = Adonis.b
-  
-}
-
+  }
 
 
 ```
@@ -182,8 +189,6 @@ for (i in c(1:length(input))){
 Ordination of empirical data consistent with the view that non-random entrance and exiting from dormancy on top of environmental filtering influence community assembly
 
 ```{r}
-source("../bin/ec.dbRDA.R")
-
 shared <- "../data/EC.bac.final.shared"
 design <- "../data/design.txt"
 level  <-  "0.03"
@@ -191,9 +196,12 @@ level  <-  "0.03"
 # Run PCoA On Emperical Data
 dbRDA.output = ec.dbRDA(shared = shared, level = level, design = design)
 
+png(filename = "../figures/EC_Ordination.png", 
+    width = 1000, height = 1000, res = 96 * 2)
+
 # Plot Parameters
 par(mfrow=c(1,1), mar=c(0.5,0.5,0,0), oma=c(5, 5, 1, 1))
-layout(matrix(c(2, 1), 2, 1, byrow=T), heights=c(1, 4))
+layout(matrix(c(2, 1), 2, 1, byrow=T), heights=c(0.5, 4.5))
 
 x.lab <- c(T)
 y.lab <- c(T)
@@ -229,7 +237,7 @@ y.lab <- c(T)
       if (RDA$slope[i] == levels(RDA$slope)[1]) {slope.color[i] = "wheat3"}
       else {slope.color[i] = "green3"}
       }
-  points(RDA$CAP1, RDA$CAP2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
+  points(RDA$CAP1, RDA$CAP2, pch=mol.shape, cex=1.5, col="black", bg=slope.color, lwd=2)
   box(lwd=2)
   
 mtext("Axis 2", side = 1, cex = 1.5, outer=T, line = 2.5)
@@ -243,15 +251,121 @@ legend("center", c(paste("All; ",levels(RDA$slope)[1]," Slope", sep=""),
      paste("Active; ",levels(RDA$slope)[1]," Slope", sep=""),
    paste("Active; ",levels(RDA$slope)[2]," Slope", sep="")),
    pt.lwd=2, col="black", pt.bg=c("wheat3", "green3", "wheat3",
-   "green3"), pch=c(21,21,22,22), bty='n', ncol=4, cex=0.6, pt.cex=1)  
+   "green3"), pch=c(21,21,22,22), bty='n', ncol=4, cex=0.6, pt.cex=0.8)  
 
+# Close Plot Device
+dev.off()
+graphics.off()
 ```
 
-# Load Plot
+## Show Plot
+```{r}
+img <- readPNG("../figures/EC_Ordination.png")
+grid.raster(img)
+```
+
+## PCoA Loadings
 ```{r}
 
 
+
 ```
+
+## PERMANOVA
+```{r}
+shared <- "../data/EC.bac.final.shared"
+design <- "../data/design.txt"
+
+sbys.in <- read.otu(shared, "0.03")
+design.in <- read.delim(design, header=T, row.names=1)
+  
+# Remove any OTUs with <2 OTUs
+sbys.red <- sbys.in[,which(colSums(sbys.in) >= 10)]
+  
+# Relative Abundances
+sbysREL <- sbys.red
+for(j in 1:nrow(sbys.red)){
+  sbysREL[j,] = sbys.red[j,]/sum(sbys.red[j,])
+}
+  
+# Log Transformation
+sbysREL.log <- decostand(sbysREL, method="log")
+Adonis.b <- adonis(sbysREL.log ~ design.in$molecule * design.in$slope)
+
+```
+
+
+## Within Site Diversity
+```{r}
+EC.OTU <- read.otu(shared, "0.03")
+EC.design <- read.delim(design, header=T, row.names=1)
+
+# Remove Bad Samples
+EC.bad <- rownames(EC.OTU)[c(9,20:21,24:27,32,37,74)]
+
+# Samples by molecules
+DNA <- rownames(EC.design[which(EC.design$molecule == "DNA"), ])
+RNA <- rownames(EC.design[which(EC.design$molecule == "RNA"), ])
+
+hist(log10(rowSums(EC.OTU[which(rownames(EC.OTU) %in% DNA), ])), main = "DNA")
+hist(log10(rowSums(EC.OTU[which(rownames(EC.OTU) %in% RNA), ])), main = "RNA")
+hist(log10(rowSums(EC.OTU[which(rownames(EC.OTU) %in% EC.bad), ])), main = "Bad")
+
+hist(log10(rowSums(EC.OTU[-(which(rownames(EC.OTU) %in% EC.bad)), ])))
+
+# Remove any OTUs with <2 occurences (within and across sites)
+EC.OTU.2 <- EC.OTU[,which(colSums(EC.OTU) >= 2)]
+dim(EC.OTU.2)
+
+# Separate into DNA and RNA
+EC.DNA <- EC.OTU.2[which(EC.design$molecule == "DNA"), ]
+EC.RNA <- EC.OTU.2[which(EC.design$molecule == "RNA"), ]
+
+# Function for Calculating Species Richness w/ Resampling
+richness.iter <- function(otu.matrix  = " ", 
+                          sample.size = " ", 
+                          iters       = " "){
+  rich.matrix <- matrix(NA, dim(otu.matrix)[1], iters)
+  rownames(rich.matrix) <- rownames(otu.matrix)
+  for (i in 1:iters){
+    temp.matrix <- rrarefy(otu.matrix, sample.size)
+    rich.matrix[,i] <- rowSums((temp.matrix>0)*1)
+  }
+  rich.mean <- apply(rich.matrix, 1, mean)
+  rich.se <- apply(rich.matrix, 1, sem)
+  return(data.frame(S = rich.mean, S_se = rich.se))
+}
+
+# Function for Simpsons Evenness w/ Resampling
+evenness.iter <- function(otu.matrix  = " ", 
+                          sample.size = " ", 
+                          iters       = " "){
+  simp_even <- function(SAD = " "){
+  SAD <- subset(SAD, SAD > 0)
+  S <- length(SAD); N <- sum(SAD); X <- rep(NA, S)
+  for (i in 1:S){
+    X[i] <- (SAD[i]*(SAD[i] - 1)) / (N * (N - 1))
+    }
+  D <- sum(X); e_d <- (1/D)/S
+  return(e_d)
+  }
+  even.matrix <- matrix(NA, dim(otu.matrix)[1], iters)
+  rownames(even.matrix) <- rownames(otu.matrix)
+  for (i in 1:iters){
+    temp.matrix <- rrarefy(otu.matrix, sample.size)
+    even.matrix[,i] <- apply(temp.matrix, 1, simp_even)
+    }
+  even.mean <- apply(even.matrix, 1, mean)
+  even.se <- apply(even.matrix, 1, sem)
+  return(data.frame(E = even.mean, E_se = even.se))
+}
+
+S.iter <- richness.iter(EC.OTU.2, min(rowSums(EC.OTU.2) * 0.9), 100)
+E.iter <- evenness.iter(EC.OTU.2, min(rowSums(EC.OTU.2) * 0.9), 100)
+
+```
+
+
 
 
 
