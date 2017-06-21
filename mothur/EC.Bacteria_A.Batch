@@ -5,12 +5,17 @@ unique.seqs(fasta=EC.trim.contigs.good.fasta)
 summary.seqs(fasta=EC.trim.contigs.good.unique.fasta, name=EC.trim.contigs.good.names, processors=8)
 count.seqs(name=EC.trim.contigs.good.names, group=EC.contigs.good.groups, processors=1)
 summary.seqs(fasta=EC.trim.contigs.good.unique.fasta, count=EC.trim.contigs.good.count_table, processors=8)
-align.seqs(fasta=EC.trim.contigs.good.unique.fasta, reference=silva.nr_v128.align, flip=T, processors=8)
+align.seqs(fasta=EC.trim.contigs.good.unique.fasta, reference=silva.v4.fasta, flip=T, processors=8)
 summary.seqs(fasta=EC.trim.contigs.good.unique.align, processors=8)
 summary.seqs(fasta=EC.trim.contigs.good.unique.flip.accnos, processors=8)
+
+
+
+
 screen.seqs(fasta=EC.trim.contigs.good.unique.align, count=EC.trim.contigs.good.count_table, minlength=250, maxhomop=8, processors=8)
+
 count.groups(count=EC.trim.contigs.good.good.count_table)
-summary.seqs(fasta=EC.trim.contigs.good.unique.align, processors=32)
+summary.seqs(fasta=EC.trim.contigs.good.unique.align, processors=8)
 filter.seqs(fasta=EC.trim.contigs.good.unique.good.align, vertical=T, trump=.)
 summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.fasta,count=EC.trim.contigs.good.good.count_table, processors=32)
 unique.seqs(fasta=EC.trim.contigs.good.unique.good.filter.fasta, count=EC.trim.contigs.good.good.count_table)
