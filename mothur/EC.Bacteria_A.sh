@@ -6,6 +6,7 @@
 #PBS -j oe
 cd /N/dc2/projects/Lennon_Sequences/2017_EvolutionCanyon/
 module load gcc/4.9.2
+module load boost/1.52.0
 module load mothur/1.39.0
 mothur EC.Bacteria_A.Batch
 qsub EC.Bacteria_B.sh
