@@ -190,11 +190,39 @@ Ordination of empirical data consistent with the view that non-random entrance a
 
 ```{r}
 shared <- "../data/EC.bac.final.shared"
-design <- "../data/design.txt"
+design.in <- "../data/design.txt"
 level  <-  "0.03"
 
 # Run PCoA On Emperical Data
-dbRDA.output = ec.dbRDA(shared = shared, level = level, design = design)
+
+ec_data <- read.otu(shared, "0.03")
+
+# Note: owing to amplification issues, we only sequenced 76 of 80 samples.
+# The four samples not included are C-1E-R, EC-2G-R, EC-2J-R, EC-6I-D
+dim(ec_data)
+counts <- count.groups(otu.matrix = ec_data)
+low.coverage <- counts[which(counts < 50000)]
+
+# Remove low coverage samples 
+ec_data2 <- ec_data[-c(low.coverage), ]
+
+# Remove problematic samples (EC_2A_D, EC_2A_R, EC_2C_R, EC_2D_R)
+#ec_data.tmp <- ec_data2[-c(9,20:21,24:27,32,37,74),]
+ec_data3 <- ec_data2[-c(which(c("EC_2A_D", "EC_2A_R","EC_2C_R", "EC_2D_R") %in% 
+                                rownames(ec_data2))), ]
+
+rownames(ec_data3)
+
+# Remove OTUs with less than two observations
+ec_data_red <- ec_data3[,colSums(ec_data3) >= 2]
+
+# Import Design
+design <- read.delim(design.in, header=T, row.names=1)
+```
+
+# Run dbRDA and Plot
+```{r}
+dbRDA.output = ec.dbRDA(otu.matrix = ec_data_red, design = design)
 
 png(filename = "../figures/EC_Ordination.png", 
     width = 1000, height = 1000, res = 96 * 2)
@@ -211,8 +239,8 @@ y.lab <- c(T)
   explainvar1 <- dbRDA.output$explainvar1
   explainvar2 <- dbRDA.output$explainvar2
 
-  x.dim <- c(-0.6, 0.6)
-  y.dim <- c(-0.5, 0.5)
+  x.dim <- c(-0.8, 0.6)
+  y.dim <- c(-0.6, 0.5)
 
   # Initiate Plot
   plot(RDA$CAP1, RDA$CAP2, xlab = "", ylab="",
@@ -238,10 +266,12 @@ y.lab <- c(T)
       else {slope.color[i] = "green3"}
       }
   points(RDA$CAP1, RDA$CAP2, pch=mol.shape, cex=1.5, col="black", bg=slope.color, lwd=2)
+  ordiellipse(cbind(RDA$CAP1, RDA$CAP2), RDA$labs, kind="sd", conf=0.95,
+  lwd=2, lty=3, draw = "lines", col = "black", label=FALSE)
   box(lwd=2)
   
-mtext("Axis 2", side = 1, cex = 1.5, outer=T, line = 2.5)
-mtext("Axis 1", side = 2, cex = 1.5, outer=T, line = 2.5) 
+mtext("Axis 1", side = 1, cex = 1.5, outer=T, line = 2.5)
+mtext("Axis 2", side = 2, cex = 1.5, outer=T, line = 2.5) 
   
 # Legend
 par(mar=c(0, 0, 0, 0))
@@ -251,15 +281,15 @@ legend("center", c(paste("All; ",levels(RDA$slope)[1]," Slope", sep=""),
      paste("Active; ",levels(RDA$slope)[1]," Slope", sep=""),
    paste("Active; ",levels(RDA$slope)[2]," Slope", sep="")),
    pt.lwd=2, col="black", pt.bg=c("wheat3", "green3", "wheat3",
-   "green3"), pch=c(21,21,22,22), bty='n', ncol=4, cex=0.6, pt.cex=0.8)  
+   "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=0.8, pt.cex=1)  
 
 # Close Plot Device
 dev.off()
 graphics.off()
-```
+#```
 
 ## Show Plot
-```{r}
+#```{r}
 img <- readPNG("../figures/EC_Ordination.png")
 grid.raster(img)
 ```
@@ -273,24 +303,19 @@ grid.raster(img)
 
 ## PERMANOVA
 ```{r}
-shared <- "../data/EC.bac.final.shared"
-design <- "../data/design.txt"
+# Match OTU matrix and design
+design_red <- design[which(rownames(design) %in% rownames(ec_data_red)),]
 
-sbys.in <- read.otu(shared, "0.03")
-design.in <- read.delim(design, header=T, row.names=1)
-  
-# Remove any OTUs with <2 OTUs
-sbys.red <- sbys.in[,which(colSums(sbys.in) >= 10)]
-  
+
 # Relative Abundances
-sbysREL <- sbys.red
-for(j in 1:nrow(sbys.red)){
-  sbysREL[j,] = sbys.red[j,]/sum(sbys.red[j,])
+sbysREL <- ec_data_red
+for(j in 1:nrow(ec_data_red)){
+  sbysREL[j,] = ec_data_red[j,]/sum(ec_data_red[j,])
 }
   
 # Log Transformation
 sbysREL.log <- decostand(sbysREL, method="log")
-Adonis.b <- adonis(sbysREL.log ~ design.in$molecule * design.in$slope)
+Adonis.b <- adonis(sbysREL.log ~ design_red$molecule * design_red$slope)
 
 ```
 
@@ -301,14 +326,21 @@ EC.OTU <- read.otu(shared, "0.03")
 EC.design <- read.delim(design, header=T, row.names=1)
 
 # Remove Bad Samples
-EC.bad <- rownames(EC.OTU)[c(9,20:21,24:27,32,37,74)]
+#EC.bad <- rownames(EC.OTU)[c(9,20:21,24:27,32,37,74)]
 
 # Samples by molecules
 DNA <- rownames(EC.design[which(EC.design$molecule == "DNA"), ])
 RNA <- rownames(EC.design[which(EC.design$molecule == "RNA"), ])
 
-hist(log10(rowSums(EC.OTU[which(rownames(EC.OTU) %in% DNA), ])), main = "DNA")
-hist(log10(rowSums(EC.OTU[which(rownames(EC.OTU) %in% RNA), ])), main = "RNA")
+par(mfrow = c(2, 1), mar = c(2, 2, 2, 1), oma = c(4, 3, 1, 1))
+hist(rowSums(EC.OTU[which(rownames(EC.OTU) %in% DNA), ]),  las = 1, ylim = c(0, 18),
+     main = "DNA", xlab = "", ylab = "", breaks = seq(0, 250000, by = 25000))
+mtext(side = 2, "Sites", line = 3, cex = 1.5)
+hist((rowSums(EC.OTU[which(rownames(EC.OTU) %in% RNA), ])),  las = 1, ylim = c(0, 18),
+     main = "RNA",xlab = "", ylab = "", breaks = seq(0, 250000, by = 25000))
+mtext(side = 1, "Counts", line = 3, cex = 1.5)
+mtext(side = 2, "Sites", line = 3, cex = 1.5)
+
 hist(log10(rowSums(EC.OTU[which(rownames(EC.OTU) %in% EC.bad), ])), main = "Bad")
 
 hist(log10(rowSums(EC.OTU[-(which(rownames(EC.OTU) %in% EC.bad)), ])))
