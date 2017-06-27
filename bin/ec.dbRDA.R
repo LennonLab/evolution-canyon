@@ -11,26 +11,14 @@
 #                                                                              #
 ################################################################################
 
-ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
+ec.dbRDA <- function(otu.matrix = " ", design = " "){
 
   source("../bin/DiversityFunctions.r")
   require("vegan")
 
-  # Import Site by OTU Matrix
-  ec_data <- read.otu(shared, "0.03")
-  design <- read.delim(design, header=T, row.names=1)
 
-  # Note: owing to amplification issues, we only sequenced 76 of 80 samples.
-  # The four samples not included are C-1E-R, EC-2G-R, EC-2J-R, EC-6I-D
-
-  # Remove problematic samples (EC_2A_D, EC_2A_R, EC_2C_R, EC_2D_R)
-  ec_data.tmp <- ec_data[-c(9,20:21,24:27,32,37,74),]
-
-  # Remove OTUs with less than ten observations
-  ec_data_red <- ec_data.tmp[,colSums(ec_data.tmp) >= 10]
-
-  # design matrix w/o problem samples & pairs
-  design_red <- design[which(rownames(design) %in% rownames(ec_data_red)),]
+  # Match OTU matrix and design
+  design_red <- design[which(rownames(design) %in% rownames(otu.matrix)),]
   #design_red$paired <- c(rep(seq(1:14), each=2), rep(seq(1:19), each=2))
 
   # Create factors for model
@@ -52,12 +40,12 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
   station.molecule.concat <- paste(station, molecule, sep = "")
 
   # Calculate Presense Absence
-  dataPA <- (ec_data_red > 0)*1
+  dataPA <- (otu.matrix > 0)*1
 
   # Calculating Relative Abundance
-  dataREL <- ec_data_red
-  for(i in 1:nrow(ec_data_red)){
-    dataREL[i,] = ec_data_red[i,]/sum(ec_data_red[i,])
+  dataREL <- otu.matrix
+  for(i in 1:nrow(otu.matrix)){
+    dataREL[i,] = otu.matrix[i,]/sum(otu.matrix[i,])
     }
 
   # Log Transform Relative Abundance
@@ -70,11 +58,13 @@ ec.dbRDA <- function(shared = " ", level = "0.03", design = " "){
   dataHell <- decostand(ec_data_red, method="hellinger")
 
   # Create Distance Matrix with bray (deafault), manhattan, euclidean, canberra, bray, kulczynski, jaccard, gower, altGower, morisita, horn, mountford, raup, binomial, or chao. Most should be part of vegan, but possilbly 'labdsv' or 'BiodiversityR' packages
-  samplePA.dist <- vegdist(dataHell,method="bray")
-  sampleREL.dist <- vegdist(dataHell,method="bray")
+  samplePA.dist <- vegdist(dataRel.l,method="bray")
+  sampleREL.dist <- vegdist(dataRel.l,method="bray")
 
   # Distance Based Redundancy Analysis
-  dbRDA <- capscale(dataChord ~ slope + molecule + Condition(paired), distance="bray")
+  #dbRDA <- capscale(dataRel.l ~ slope + molecule + Condition(paired), distance="bray")
+  dbRDA <- capscale(dataRel.l ~ slope + molecule, distance="bray")
+  
   
   #   head(summary(dbRDA))
   #   anova(dbRDA, by="terms", permu=999)
