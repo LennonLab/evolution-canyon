@@ -58,12 +58,12 @@ ec.dbRDA <- function(otu.matrix = " ", design = " "){
   dataHell <- decostand(ec_data_red, method="hellinger")
 
   # Create Distance Matrix with bray (deafault), manhattan, euclidean, canberra, bray, kulczynski, jaccard, gower, altGower, morisita, horn, mountford, raup, binomial, or chao. Most should be part of vegan, but possilbly 'labdsv' or 'BiodiversityR' packages
-  samplePA.dist <- vegdist(dataRel.l,method="bray")
-  sampleREL.dist <- vegdist(dataRel.l,method="bray")
+  samplePA.dist <- vegdist(dataREL.l,method="bray")
+  sampleREL.dist <- vegdist(dataREL.l,method="bray")
 
   # Distance Based Redundancy Analysis
   #dbRDA <- capscale(dataRel.l ~ slope + molecule + Condition(paired), distance="bray")
-  dbRDA <- capscale(dataRel.l ~ slope + molecule, distance="bray")
+  dbRDA <- capscale(dataREL.l ~ slope + molecule, distance="bray")
   
   
   #   head(summary(dbRDA))

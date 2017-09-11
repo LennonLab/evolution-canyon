@@ -1,6 +1,6 @@
 ---
 title: "Evolution Canyon"
-author: "Jay T. Lennon, Kenneth J. Locey, & Mario E. Muscarella"
+author: "Mario E. Muscarella, Kenneth J. Locey, & Jay T. Lennon"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 header-includes:
    - \usepackage{array}
@@ -64,6 +64,10 @@ dir <- "../microbide/SbyS/"
 input <- list.files(dir, "*.txt")
 input <- input[c(1, 2, 3, 6)]
 
+input
+test <- read.delim(paste(dir, input[1], sep = ""), header = T)
+rowSums(as.matrix(test[ 1, -c(1:3)]))
+
 # Create Blank Output
 dbRDA.output <- list()
 
@@ -90,6 +94,8 @@ for (p in 1:length(dbRDA.output)){
   RDA <- dbRDA.output[[p]]$RDA
   explainvar1 <- dbRDA.output[[p]]$explainvar1
   explainvar2 <- dbRDA.output[[p]]$explainvar2
+  print(explainvar1)
+  print(explainvar2)
 
   x.dim <- c(-0.6, 0.6)
   y.dim <- c(-0.5, 0.5)
@@ -123,8 +129,8 @@ for (p in 1:length(dbRDA.output)){
   text(x = -0.58, y = 0.45, labs[p], cex = 1.5)
 }
   
-mtext("Axis 2", side = 1, cex = 1.5, outer=T, line = 3)
-mtext("Axis 1", side = 2, cex = 1.5, outer=T, line = 3) 
+mtext("Axis 1", side = 1, cex = 1.5, outer=T, line = 3)
+mtext("Axis 2", side = 2, cex = 1.5, outer=T, line = 3) 
   
 # Legend
 par(mar=c(0, 0, 0, 0))
@@ -204,26 +210,102 @@ counts <- count.groups(otu.matrix = ec_data)
 low.coverage <- counts[which(counts < 50000)]
 
 # Remove low coverage samples 
-ec_data2 <- ec_data[-c(low.coverage), ]
+ec_data2 <- ec_data[-c(which(rownames(ec_data) %in% c(names(low.coverage)))), ]
 
 # Remove problematic samples (EC_2A_D, EC_2A_R, EC_2C_R, EC_2D_R)
 #ec_data.tmp <- ec_data2[-c(9,20:21,24:27,32,37,74),]
-ec_data3 <- ec_data2[-c(which(c("EC_2A_D", "EC_2A_R","EC_2C_R", "EC_2D_R") %in% 
-                                rownames(ec_data2))), ]
+ec_data3 <- ec_data2[-c(which(rownames(ec_data2) %in% 
+                     c("EC_2A_D", "EC_2A_R","EC_2C_R", "EC_2D_R"))), ]
 
 rownames(ec_data3)
 
-# Remove OTUs with less than two observations
-ec_data_red <- ec_data3[,colSums(ec_data3) >= 2]
+# Remove OTUs with less than two observations across samples
+ec_data_red <- ec_data3[,which(colSums(ec_data3) >= 2)]
 
 # Import Design
 design <- read.delim(design.in, header=T, row.names=1)
+
+# Match OTU matrix and design
+design_red <- design[which(rownames(design) %in% rownames(ec_data_red)),]
 ```
 
-# Run dbRDA and Plot
+# Run dbRDA By Hand
+```{r}
+# Create factors for model
+slope <- design_red$slope # factor 1
+molecule <- design_red$molecule # factor 2
+paired <- design_red$paired_across_slope
+site <- design_red$site
+station <- design_red$station
+slope.molecule <- data.frame(cbind(as.character(slope),
+                                   as.character(molecule))) # Y matrix with factor 1 and 2
+slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")],
+                                          sep = "")) # create unique treat ID vector
+# Create a vector of molecules by station
+station.molecule.concat <- paste(station, molecule, sep = "")
+
+
+pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:5), each=2), 
+                  rep(seq(1:10), each=2), rep(seq(1:9), each=2))
+# To include "questionable" data uncomment the following
+# pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:8), each=2),
+#    rep(seq(1:10), each=10), rep(seq(1:9), each=2))
+
+# Define OTU Matrix
+otu.matrix <- ec_data_red
+
+# Calculate Presense Absence
+dataPA <- (otu.matrix > 0)*1
+
+# Calculating Relative Abundance
+dataREL <- otu.matrix
+for(i in 1:nrow(otu.matrix)){
+  dataREL[i,] = otu.matrix[i,]/sum(otu.matrix[i,])
+  }
+
+# Log Transform Relative Abundance
+dataREL.l <- decostand(dataREL,method="log")
+
+# Chord Transformation
+dataChord <- decostand(ec_data_red, method="normalize")
+
+# Hellinger Transformation
+dataHell <- decostand(ec_data_red, method="hellinger")
+
+# Create Distance Matrix with bray (deafault), manhattan, euclidean, canberra, bray, kulczynski, jaccard, gower, altGower, morisita, horn, mountford, raup, binomial, or chao. Most should be part of vegan, but possilbly 'labdsv' or 'BiodiversityR' packages
+samplePA.dist <- vegdist(dataREL.l,method="bray")
+sampleREL.dist <- vegdist(dataREL.l,method="bray")
+
+# Distance Based Redundancy Analysis
+#dbRDA <- capscale(dataRel.l ~ slope + molecule + Condition(paired), distance="bray")
+dbRDA <- capscale(dataREL.l ~ slope + molecule, distance="bray")
+
+
+#   head(summary(dbRDA))
+#   anova(dbRDA, by="terms", permu=999)
+#   varpart(dataREL,  ~ slope, ~ molecule)
+
+# Percent Variance Explained Using PCoA (Axis 1,2,3)
+explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+explainvar2 <- round(dbRDA$CCA$eig[2]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+
+#RDA <- as.data.frame(dbRDA$CCA$wa)
+RDA <- as.data.frame(scores(dbRDA, display = c("wa"), scaling = "sites"))
+RDA$molecule <- molecule
+RDA$slope <- slope
+RDA$labs <- slope.molecule.concat
+
+RDA.out <- list("RDA" = RDA,
+                "explainvar1" = explainvar1,
+                "explainvar2" = explainvar2)
+```
+
+
 ```{r}
 dbRDA.output = ec.dbRDA(otu.matrix = ec_data_red, design = design)
 
+
+# Plot
 png(filename = "../figures/EC_Ordination.png", 
     width = 1000, height = 1000, res = 96 * 2)
 
@@ -239,8 +321,8 @@ y.lab <- c(T)
   explainvar1 <- dbRDA.output$explainvar1
   explainvar2 <- dbRDA.output$explainvar2
 
-  x.dim <- c(-0.8, 0.6)
-  y.dim <- c(-0.6, 0.5)
+  x.dim <- c(-0.5, 0.5)
+  y.dim <- c(-0.4, 0.3)
 
   # Initiate Plot
   plot(RDA$CAP1, RDA$CAP2, xlab = "", ylab="",
@@ -316,7 +398,7 @@ for(j in 1:nrow(ec_data_red)){
 # Log Transformation
 sbysREL.log <- decostand(sbysREL, method="log")
 Adonis.b <- adonis(sbysREL.log ~ design_red$molecule * design_red$slope)
-
+Adonis.b
 ```
 
 
