@@ -90,10 +90,10 @@ ec.dbRDA <- function(otu.matrix = " ", design = " "){
 
 
 
-  ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
+ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
 
   # Example Data
-  #   shared     = "../microbide/SbyS/Condition6.txt"
+  #   shared     = "../microbide/SbyS/Condition1.txt"
   #   cutoff     = "0.03"
   #   design     = "../data/simmy.design.txt"
 
@@ -105,7 +105,7 @@ ec.dbRDA <- function(otu.matrix = " ", design = " "){
   design <- read.delim(design, header=T, row.names=1)
 
   # Remove OTUs with less than ten observations
-  ec_data_red <- ec_data.sim[,colSums(ec_data.sim) >= 10]
+  ec_data_red <- ec_data.sim[,colSums(ec_data.sim) >= 2]
 
   # Create factors for model
   slope <- design$slope       # factor 1
@@ -146,7 +146,7 @@ ec.dbRDA <- function(otu.matrix = " ", design = " "){
   dataREL.h <- decostand(dataREL, method="hellinger")
 
   # Distance Based Redundancy Analysis
-  dbRDA <- capscale(dataREL ~ slope + molecule + Condition(paired), distance="bray")
+  dbRDA <- capscale(dataREL ~ slope + molecule , distance="bray")
 
 #   head(summary(dbRDA))
 #   anova(dbRDA, by="terms", permu=999)

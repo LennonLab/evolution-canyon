@@ -145,10 +145,10 @@ legend("center", c(paste("All; ",levels(RDA$slope)[1]," Slope", sep=""),
 # Close Plot Device
 dev.off()
 graphics.off()
-```
+#```
 
 ## Show Plot
-```{r}
+#```{r}
 img <- readPNG("../figures/BIDE_Ordination.png")
 grid.raster(img)
 ```
