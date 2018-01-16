@@ -1,0 +1,510 @@
+---
+title: "Evolution Canyon"
+author: "Mario E. Muscarella, Kenneth J. Locey, & Jay T. Lennon"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes:
+   - \usepackage{array}
+   - \usepackage{graphics}
+output:
+  pdf_document:
+  fig_caption: true
+---
+
+Dormancy, dispersal, and environmental filtering at "Evolution Canyon"
+
+Brief Description:
+
+
+# Initial Setup
+```{r results='hide', message=FALSE}
+rm(list=ls())
+getwd()
+setwd("~/GitHub/evolution-canyon/analyses")
+
+# Import Required Packages
+require("png")
+require("grid")
+require("vegan")
+
+
+# Import Scripts
+source("../bin/DiversityFunctions.r")
+source("../bin/ec.dbRDA.R")
+
+# Common Functions
+sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
+```
+
+# BIDE Model Parameter Exploration
+```{r}
+dir <- "../microbide/SbyS/Tests"
+input <- list.dirs(dir, full.names = T)
+names <- list.dirs(dir, full.names = F)
+names.long <- data.frame(do.call('rbind', strsplit(names, "_", fixed = T)))
+
+lgp <- as.numeric(gsub("lgp=", "", names.long[, 1]))
+im <- as.numeric(gsub("im=", "", names.long[, 2]))
+dk <- as.numeric(gsub("dispkernel=", "", names.long[, 3]))
+
+# Conditions
+cond1 <- list.files(dir, pattern = "Condition1.txt", recursive = T, full.names = T)
+cond6 <- list.files(dir, pattern = "Condition6.txt", recursive = T, full.names = T)
+```
+
+# Pair Distances
+```{r}
+# Define Function
+pair.dis <- function(x){
+  sbys <- read.otu(x, "0.03")
+  grep("north", rownames(sbys))
+  grep("south", rownames(sbys))
+  grep("all", rownames(sbys))
+  grep("active", rownames(sbys))
+  slope <- gsub("[0-9]*_.*", "", rownames(sbys))
+  molecule <- gsub(".*_", "", rownames(sbys))
+  pair <- gsub("_.*", "", gsub(".*th", "", rownames(sbys)))
+  
+  # Calculating Relative Abundance
+  dataREL <- sbys
+  for(i in 1:nrow(sbys)){
+    dataREL[i,] = sbys[i,]/sum(sbys[i,])
+  }
+  
+  # Log Transform Relative Abundance
+  dataREL.l <- suppressWarnings(decostand(dataREL,method="log"))
+  
+  # Distance Based Redundancy Analysis
+  dbRDA <- capscale(dataREL.l ~ slope + molecule , distance="bray", warn = F)
+  
+  # Calculate BC Dist
+  bide.dist <- vegdist(dataREL.l, method = "bray", binary = "FALSE")
+  
+  # Principal Coordinates Analysis
+  bide.pcoa <- cmdscale(bide.dist, eig = TRUE, k = 5)
+  
+  # Distance Between Pairs
+  pairs <- as.matrix(bide.dist)[seq(1, 80, by = 2), seq(2, 80, by = 2)]
+  pair.dist <- diag(pairs)
+  pair.dist.slope <- gsub("[0-9]*_.*", "", row.names(pairs))
+  m <- aggregate(pair.dist, by = list(pair.dist.slope), mean)
+  s <- aggregate(pair.dist, by = list(pair.dist.slope), sem)
+  out <- data.frame("north.mean" = m[1, 2], "north.sem" = s[1, 2],
+         "south.mean" = m[2, 2], "south.sem" = s[2,2])
+  return(out)
+}
+
+# Condition 1
+pair.distances1 <- as.data.frame(matrix(NA, nrow = length(cond1), ncol = 7))
+colnames(pair.distances1) <- c("lgp", "im", "dk", "north.mean", "north.sem", 
+                              "south.mean", "south.sem")
+
+pair.distances1$lgp <- lgp; pair.distances1$im <- im; pair.distances1$dk <- dk
+
+for(i in 1:length(cond1)){
+  pair.distances1[i, 4:7] <- pair.dis(cond1[i])
+}
+
+# Condition 6
+pair.distances6 <- as.data.frame(matrix(NA, nrow = length(cond6), ncol = 7))
+colnames(pair.distances6) <- c("lgp", "im", "dk", "north.mean", "north.sem", 
+                              "south.mean", "south.sem")
+pair.distances6$lgp <- lgp; pair.distances6$im <- im; pair.distances6$dk <- dk
+
+for(i in 1:length(cond6)){
+  pair.distances6[i, 4:7] <- pair.dis(cond6[i])
+}
+```
+
+# Plot
+```{r}
+# Initialize Plot
+
+png(filename = "../figures/BIDE_PairDistance.png", 
+    width = 1800, height = 1200, res = 96 * 2)
+
+# Plot Parameters
+par(mfrow=c(1,1), mar=c(0.5,0.5,0.5,0.5), oma=c(5, 8, 1, 1))
+layout(matrix(c(1:6), 2, 3, byrow=T))
+
+# Reorganize Condition 1 for Plotting
+pair.dis.b <- data.frame(
+  lgp = rep(pair.distances1$lgp, 2),
+  im = rep(pair.distances1$im, 2),
+  dk = rep(pair.distances1$dk, 2),
+  dist = c(pair.distances1$north.mean, pair.distances1$south.mean), 
+  col = as.character(c(rep("sienna", length(pair.distances1$north.mean)), 
+          rep("forestgreen", length(pair.distances1$south.mean)))),
+  stringsAsFactors = F)
+pair.dis.b <- pair.dis.b[sample(1:dim(pair.dis.b)[1]),]
+
+# Plot Condition 1
+plot(pair.dis.b$dist ~ pair.dis.b$lgp, col = pair.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
+axis(side = 2, labels = T, las = 1, cex.axis = 1.25)
+mtext("Pair Dissimilarity", side = 2, line = 3.5, outer = F)
+mtext("Condition 1", side = 2, line = 5.5, outer = F)
+box(lwd = 1.5)
+
+plot(pair.dis.b$dist ~ pair.dis.b$im, col = pair.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
+axis(side = 2, labels = F, las = 1)
+box(lwd = 1.5)
+
+plot(pair.dis.b$dist ~ log10(pair.dis.b$dk), col = pair.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
+axis(side = 2, labels = F, las = 1)
+box(lwd = 1.5)
+
+# Reorganize Condition 6 for Plotting
+pair.dis.b <- data.frame(
+  lgp = rep(pair.distances6$lgp, 2),
+  im = rep(pair.distances6$im, 2),
+  dk = rep(pair.distances6$dk, 2),
+  dist = c(pair.distances6$north.mean, pair.distances6$south.mean), 
+  col = as.character(c(rep("sienna", length(pair.distances6$north.mean)), 
+          rep("forestgreen", length(pair.distances6$south.mean)))),
+  stringsAsFactors = F)
+pair.dis.b <- pair.dis.b[sample(1:dim(pair.dis.b)[1]),]
+
+# Plot Condition 6
+plot(pair.dis.b$dist ~ pair.dis.b$lgp, col = pair.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(0.8, 0.9, 1.0))
+axis(side = 2, labels = T, las = 1, cex.axis = 1.25)
+mtext("Pair Dissimilarity", side = 2, line = 3.5, outer = F)
+mtext("Condition 6 (The new 4)", side = 2, line = 5.5, outer = F)
+mtext("Lognormal Parameter", side = 1, line = 3, outer = F)
+box(lwd = 1.5)
+
+plot(pair.dis.b$dist ~ pair.dis.b$im, col = pair.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(0.8, 0.9, 1.0))
+axis(side = 2, labels = F, las = 1)
+mtext("Immigration Rate", side = 1, line = 3, outer = F)
+box(lwd = 1.5)
+
+plot(pair.dis.b$dist ~ log10(pair.dis.b$dk), col = pair.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(-3, -2, -1))
+axis(side = 2, labels = F, las = 1)
+mtext(expression(paste("Log"[10], "(Dispersal Density Kernel)")), 
+      side = 1, line = 3, outer = F)
+box(lwd = 1.5)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+#```
+
+## Show Plot
+#```{r}
+img <- readPNG("../figures/BIDE_PairDistance.png")
+grid.raster(img)
+
+```
+
+# Site Distances
+```{r}
+site.dis <- function(x){
+  sbys <- read.otu(x, "0.03")
+  grep("north", rownames(sbys))
+  grep("south", rownames(sbys))
+  grep("all", rownames(sbys))
+  grep("active", rownames(sbys))
+  slope <- gsub("[0-9]*_.*", "", rownames(sbys))
+  molecule <- gsub(".*_", "", rownames(sbys))
+  pair <- gsub("_.*", "", gsub(".*th", "", rownames(sbys)))
+  
+  # Calculating Relative Abundance
+  dataREL <- sbys
+  for(i in 1:nrow(sbys)){
+    dataREL[i,] = sbys[i,]/sum(sbys[i,])
+  }
+  
+  # Log Transform Relative Abundance
+  dataREL.l <- suppressWarnings(decostand(dataREL,method="log"))
+  
+  # Distance Based Redundancy Analysis
+  dbRDA <- capscale(dataREL.l ~ slope + molecule , distance="bray", warn = F)
+  
+  # Calculate BC Dist
+  bide.dist <- vegdist(dataREL.l, method = "bray", binary = "FALSE")
+  
+  # Principal Coordinates Analysis
+  bide.pcoa <- cmdscale(bide.dist, eig = TRUE, k = 5)
+  
+  # Beta Dispersion
+  grouping <- paste(slope, molecule, sep = "_")
+  bide.disper <- betadisper(d = bide.dist, group = grouping)
+  
+  full.dis <- dist(bide.disper$centroids[, 1:5], method = "euclid", diag = T)
+  
+  # Distance Between Sites_All
+  site.dist_all <- as.matrix(full.dis)["north_all", "south_all"]
+  site.dist_active <- as.matrix(full.dis)["north_active", "south_active"]
+  site.dist_north <- as.matrix(full.dis)["north_all", "north_active"]
+  site.dist_south <- as.matrix(full.dis)["south_all", "south_active"]
+
+  out <- data.frame("north" = site.dist_north, "south" = site.dist_south,
+         "all" = site.dist_all, "active" = site.dist_active)
+  return(out)
+}
+
+
+# Condition 1
+site.distances1 <- as.data.frame(matrix(NA, nrow = length(cond1), ncol = 7))
+colnames(site.distances1) <- c("lgp", "im", "dk", "north", "south", 
+                              "all", "active")
+site.distances1$lgp <- lgp; site.distances1$im <- im; site.distances1$dk <- dk
+
+for(i in 1:length(cond1)){
+  site.distances1[i, 4:7] <- site.dis(cond1[i])
+}
+
+# Condition 6
+site.distances6 <- as.data.frame(matrix(NA, nrow = length(cond6), ncol = 7))
+colnames(site.distances6) <- c("lgp", "im", "dk", "north", "south", 
+                              "all", "active")
+site.distances6$lgp <- lgp; site.distances6$im <- im; site.distances6$dk <- dk
+
+for(i in 1:length(cond6)){
+  site.distances6[i, 4:7] <- site.dis(cond6[i])
+}
+```
+
+```{r}
+
+png(filename = "../figures/BIDE_SiteDistance.png", 
+    width = 1800, height = 1200, res = 96 * 2)
+
+# Plot Parameters
+par(mfrow=c(1,1), mar=c(0.5,0.5,0.5,0.5), oma=c(5, 8, 1, 1))
+layout(matrix(c(1:6), 2, 3, byrow=T))
+
+plot(site.distances1$all ~ site.distances1$lgp, col = "gray", pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75,
+     xlab = "Lognormal Parameter", ylab = "Site Dissimilarity",
+     main = "Condition 1")
+
+plot(site.distances1$all ~ site.distances1$im, col = "gray", pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75,
+     xlab = "Lognormal Parameter", ylab = "Site Distances, All (BC)",
+     main = "Condition 1")
+
+plot(site.distances1$all ~ log(site.distances1$dk), col = "gray", pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75,
+     xlab = "Lognormal Parameter", ylab = "Site Distances, All (BC)",
+     main = "Condition 1")
+
+plot(site.distances6$all ~ site.distances6$lgp, col = "gray", pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75,
+     xlab = "Lognormal Parameter", ylab = "Site Dissimilarity")
+
+plot(site.distances6$all ~ site.distances6$im, col = "gray", pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75,
+     xlab = "Lognormal Parameter", ylab = "Site Distances, All (BC)")
+
+plot(site.distances6$all ~ log(site.distances6$dk), col = "gray", pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75,
+     xlab = "Lognormal Parameter", ylab = "Site Distances, All (BC)")
+
+
+
+
+# Close Plot Device
+dev.off()
+graphics.off()
+#```
+
+## Show Plot
+#```{r}
+img <- readPNG("../figures/BIDE_SiteDistance.png")
+grid.raster(img)
+
+```
+
+
+
+
+
+
+
+
+input
+test <- read.delim(paste(dir, input[1], sep = ""), header = T)
+rowSums(as.matrix(test[ 1, -c(1:3)]))
+
+# Create Blank Output
+dbRDA.output <- list()
+
+# Run PCoA On All Samples
+for (i in 1:length(input)){
+  dbRDA.output[[input[i]]] = ec.dbRDA.sim(shared = paste(dir, input[i], sep=""), 
+                                             level = "0.03", 
+                                             design = "../data/simmy.design.txt")
+}
+
+png(filename = "../figures/BIDE_Ordination.png", 
+    width = 1600, height = 1200, res = 96 * 2)
+
+# Plot Parameters
+par(mfrow=c(1,1), mar=c(0.5,0.5,0,0), oma=c(6, 5, 1, 1))
+layout(matrix(c(5, 5, 1:4), 3, 2, byrow=T), heights=c(1, rep(5, 2)))
+
+labs <- c("A", "B", "C", "D", "E", "F")
+x.lab <- c(F, F, T, T)
+y.lab <- c(T, F, T, F)
+
+# Plot Each
+for (p in 1:length(dbRDA.output)){
+  RDA <- dbRDA.output[[p]]$RDA
+  explainvar1 <- dbRDA.output[[p]]$explainvar1
+  explainvar2 <- dbRDA.output[[p]]$explainvar2
+  print(explainvar1)
+  print(explainvar2)
+
+  x.dim <- c(-0.6, 0.6)
+  y.dim <- c(-0.5, 0.5)
+
+  # Initiate Plot
+  plot(RDA$CAP1, RDA$CAP2, xlab = "", ylab="",
+    xlim=x.dim,ylim= y.dim, pch=16, cex=2.0, type="n",xaxt="n",
+    yaxt="n", cex.lab=1.5, cex.axis=1.2)
+
+  axis(side=1, las=1, label=x.lab[p], lwd.ticks = 2, cex.axis = 1.25)
+  axis(side=2, las=1, label=y.lab[p], lwd.ticks = 2, cex.axis = 1.25)
+  axis(side = 1, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1) 
+  axis(side = 2, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
+  axis(side = 3, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)     
+  axis(side = 4, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
+  abline(h=0, lty="dotted")
+  abline(v=0, lty="dotted")
+  mol.shape <- rep(NA, dim(RDA)[1])
+    for (i in 1:length(mol.shape)){
+      if (RDA$molecule[i] == "DNA"){mol.shape[i] = 21}
+      else {mol.shape[i] = 22}
+      }
+  slope.color <- rep(NA, dim(RDA)[1])
+    for (i in 1:length(slope.color)){
+      if (RDA$slope[i] == levels(RDA$slope)[1]) {slope.color[i] = "wheat3"}
+      else {slope.color[i] = "green3"}
+      }
+  points(RDA$CAP1, RDA$CAP2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
+  box(lwd=2)
+  
+  text(x = -0.58, y = 0.45, labs[p], cex = 1.5)
+}
+  
+mtext("Axis 1", side = 1, cex = 1.5, outer=T, line = 3)
+mtext("Axis 2", side = 2, cex = 1.5, outer=T, line = 3) 
+  
+# Legend
+par(mar=c(0, 0, 0, 0))
+plot.new()
+legend("center", c(paste("All; ",levels(RDA$slope)[1]," Slope", sep=""),
+      paste("All; ",levels(RDA$slope)[2]," Slope", sep=""),
+      paste("Active; ",levels(RDA$slope)[1]," Slope", sep=""),
+      paste("Active; ",levels(RDA$slope)[2]," Slope", sep="")),
+      pt.lwd=2, col="black", pt.bg=c("wheat3", "green3", "wheat3",
+      "green3"), pch=c(21,21,22,22), bty='n', ncol=4, cex=1.5, pt.cex=2)  
+
+# Close Plot Device
+dev.off()
+graphics.off()
+#```
+
+## Show Plot
+#```{r}
+img <- readPNG("../figures/BIDE_Ordination.png")
+grid.raster(img)
+```
+
+
+
+```{r}
+ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
+
+  # Example Data
+  #   shared     = "../microbide/SbyS/Condition1.txt"
+  #   cutoff     = "0.03"
+  #   design     = "../data/simmy.design.txt"
+
+  source("../bin/DiversityFunctions.r")
+  require("vegan")
+
+  # Import Site by OTU Matrix
+  ec_data.sim <- read.otu(shared, "0.03")
+  design <- read.delim(design, header=T, row.names=1)
+
+  # Remove OTUs with less than ten observations
+  ec_data_red <- ec_data.sim[,colSums(ec_data.sim) >= 2]
+
+  # Create factors for model
+  slope <- design$slope       # factor 1
+  molecule <- design$molecule # factor 2
+  paired <- design$paired     # pairs
+  site <- design$site         # sites
+  station <- design$station
+
+  # Create Y matrix with factor 1 and 2
+  slope.molecule <- data.frame(cbind(as.character(slope),
+    as.character(molecule)))
+
+  # create unique treat ID vector
+  slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")],
+    sep = ""))
+  pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:5), each=2),
+    rep(seq(1:10), each=2), rep(seq(1:9), each=2))
+
+  # Create a vector of molecules by station
+  station.molecule.concat <- paste(station, molecule, sep = "")
+
+  # Calculate Presense Absence
+  dataPA <- (ec_data_red > 0)*1
+  
+  # Calculating Relative Abundance
+  dataREL <- ec_data_red
+  for(i in 1:nrow(ec_data_red)){
+    dataREL[i,] = ec_data_red[i,]/sum(ec_data_red[i,])
+  }
+  
+  # Log Transform Relative Abundance
+  dataREL.l <- decostand(dataREL,method="log")
+
+  # Chord Transformation
+  dataREL.c <- decostand(dataREL, method="normalize")
+
+  # Hellinger Transformation
+  dataREL.h <- decostand(dataREL, method="hellinger")
+
+  # Distance Based Redundancy Analysis
+  dbRDA <- capscale(dataREL ~ slope + molecule , distance="bray")
+
+#   head(summary(dbRDA))
+#   anova(dbRDA, by="terms", permu=999)
+#   varpart(dataREL,  ~ slope, ~ molecule)
+
+  # Percent Variance Explained Using PCoA (Axis 1,2,3)
+  explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+  explainvar2 <- round(dbRDA$CCA$eig[2]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+
+  #RDA <- as.data.frame(dbRDA$CCA$wa)
+  RDA <- as.data.frame(scores(dbRDA, display = c("wa"), scaling = "sites"))
+  RDA$molecule <- design$molecule
+  RDA$slope <- design$slope
+  RDA$labs <- slope.molecule.concat
+
+  RDA.out <- list("RDA" = RDA,
+                  "explainvar1" = explainvar1,
+                  "explainvar2" = explainvar2)
+
+  return(RDA.out)
+
+}
+
+```
+
+

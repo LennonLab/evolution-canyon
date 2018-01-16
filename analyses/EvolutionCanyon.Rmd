@@ -12,7 +12,7 @@ output:
 
 Dormancy, dispersal, and environmental filtering at "Evolution Canyon"
 
-Brief Description
+Brief Description:
 
 
 # Initial Setup
@@ -34,18 +34,15 @@ sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 ```
 
 
-# Figure 1: Conceptual model/theory and predictions of how environmental filtering and dormancy influence community assembly (with dispersal being implicit and more or less high) 
-
-**Jay is updating this**
-
+# Figure 1: Conceptual model
+theory and predictions of how environmental filtering and dormancy influence 
+community assembly (with dispersal being implicit and more or less high) 
 ```{r fig.width=2, fig.height=4,echo=FALSE,fig.cap="Figure 1: Conceptual Model"}
 img <- readPNG("../figures/ConceptualModel.png")
 grid.raster(img)
 ```
 
-
 # Figure 2: Photo of EC and simulation of EC-like landscape
-
 ```{r fig.width=2, fig.height=4,echo=FALSE,fig.cap="Figure 1: Conceptual Model"}
 img1 <- readPNG("../figures/ECLandscape.png")
 img2 <- readPNG("../figures/BIDELandscape.png")
@@ -55,12 +52,10 @@ grid.raster(img2, x = 0.5, y = 0.35, width=0.5)
 ```
 
 # Figure 3: BIDE Model Ordinations
-
-Ordination of simulated data capturing processes/scenarios described in Fig. 1. Here, we only have models 1, 2, 3, and 6; missing models 4 and 5. Can these other scenarios be captures with simplex?
-
-
+Ordination of simulated data capturing processes/scenarios described in Fig. 1. 
 ```{r}
 dir <- "../microbide/SbyS/"
+dir <- "../microbide/SbyS/Tests/lgp=0.926_im=0.8711_dispkernel=0.0262/"
 input <- list.files(dir, "*.txt")
 input <- input[c(1, 2, 3, 6)]
 
