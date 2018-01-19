@@ -53,10 +53,10 @@ conditions = [['same', 'rand', 'rand'],
 
 ####################  GENERATE SITE BY SPECIES DATA  ###########################
 
-for j in range(100):
+for j in range(5):
     num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
     N = 2 * 10**6 # Starting total abundance across the landscape
-    T = 10**4 # Time parameter
+    T = 10**7 # Time parameter
 
     lgp = np.random.uniform(0.8, 1) # log-series parameter; underlying structure of regional pool
     im = np.random.uniform(0.8, 1) # immigration rate
