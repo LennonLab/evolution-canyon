@@ -152,6 +152,6 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, N, T, ic, lgp, im, dkern)
             for i, ind in enumerate(COM):
                 Slist.append(ind[0])
 
-            print 'condition',ic+1,' time:',t, 'N:', len(COM), "S:", len(list(set(Slist)))
+            print 'condition',ic+1,' lgp:',round(lgp,3),' time:',t, 'N:', len(COM), "S:", len(list(set(Slist)))
 
     return COM
