@@ -2,6 +2,7 @@ from __future__ import division
 import numpy as np
 from random import sample
 from matplotlib import pyplot as plt
+matplotlib.use('Agg')
 
 #import matplotlib # statements for running on IU servers be sure to comment out
 #matplotlib.use('Agg') # if running on local machine, resets where python looks
