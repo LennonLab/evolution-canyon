@@ -46,9 +46,9 @@ for j in range(10):
     N = 2 * 10**6 # Starting total abundance across the landscape
     T = 10**7 # Time parameter
 
-    lgp = np.random.uniform(0.8, 1) # log-series parameter; underlying structure of regional pool
-    im = np.random.uniform(0.8, 1) # immigration rate
-    dkern = 10**np.random.uniform(-3, -1) # dispersal kernel
+    lgp = round(np.random.uniform(0.8, 1), 4) # log-series parameter; underlying structure of regional pool
+    im = round(np.random.uniform(0.8, 1), 4) # immigration rate
+    dkern = round(10**np.random.uniform(-3, -1), 4) # dispersal kernel
 
     for ic, combo in enumerate(conditions):
         envDiff, enterD, exitD = combo

@@ -8,7 +8,7 @@ import ECfunctions as funx
 
 def immigration(envDiff, COM, oDict1, oDict2, dDict, im, lgp):
 
-    propagules = np.random.logseries(lgp, im)  # list of propagules (was 0.99, 0.92 MEM)
+    propagules = np.random.logseries(lgp, im) # list of propagules (was 0.99, 0.92 MEM)
     for p in propagules:
         if p not in oDict1:
 
@@ -55,7 +55,7 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, N, T, ic, lgp, im, dkern)
 
                 x = np.random.binomial(1, im)
                 if x == 1:
-                    COM = immigration(envDiff, COM, oDict1, oDict2, dDict, im, lgp)
+                    COM = immigration(envDiff, COM, oDict1, oDict2, dDict, x, lgp)
 
             elif proc == 1:
                 """ Death """
