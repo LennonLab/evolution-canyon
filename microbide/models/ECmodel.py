@@ -1,22 +1,14 @@
 from __future__ import division
 import sys, csv, os
-
 import EClandscape as land
 import ECMicrobideCore as model
 import ECfunctions as funx
+import numpy as np
 
-mypath = os.path.dirname(os.path.realpath(__file__))
-path = os.path.join(os.path.split(mypath)[0], 'SbyS')
-print('Output Path = '+str(path))
 
 ###########################  GET CONDITIONS  ###################################
 
 """ Code to runs the microbide model and generates site-by-species matrices."""
-
-num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
-lgp = 0.92 # log-series parameter; underlying structure of regional pool
-N = 2 * 10**6 # Starting total abundance across the landscape
-T = 10**7 # Time parameter
 
 conditions = [['same', 'rand', 'rand'],
              ['differ', 'rand', 'rand'],
@@ -60,53 +52,69 @@ conditions = [['same', 'rand', 'rand'],
 """
 
 ####################  GENERATE SITE BY SPECIES DATA  ###########################
-for ic, combo in enumerate(conditions):
 
-    envDiff, enterD, exitD = combo
+for j in range(10):
+    num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
+    N = 2 * 10**6 # Starting total abundance across the landscape
+    T = 10**7 # Time parameter
 
-    landscapeLists = land.get_landscape(combo) # characterizing the landscape
+    lgp = np.random.uniform(0.8, 1) # log-series parameter; underlying structure of regional pool
+    im = np.random.uniform(0.8, 1) # immigration rate
+    dkern = 10**np.random.uniform(-3, -1) # dispersal kernel
 
-    NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
-    SRow2Ys, Ncounts, Nverts, Scounts, Sverts = landscapeLists[1]
+    for ic, combo in enumerate(conditions):
+        envDiff, enterD, exitD = combo
 
-    COM = model.microbide(combo, Ncounts, Nverts, Scounts, Sverts, N, T, ic)
-                            # run the model & return the communities
+        landscapeLists = land.get_landscape(combo) # characterizing the landscape
 
-    nCOM, sCOM = funx.SpeciesInPatches(COM, NRowXs, NRow1Ys, NRow2Ys,
-                                            SRowXs, SRow1Ys, SRow2Ys)
+        NRowXs, NRow1Ys, NRow2Ys, SRowXs, SRow1Ys = landscapeLists[0]
+        SRow2Ys, Ncounts, Nverts, Scounts, Sverts = landscapeLists[1]
+
+        COM = model.microbide(combo, Ncounts, Nverts, Scounts, Sverts, N, T, ic, lgp, im, dkern)
+                                # run the model & return the communities
+
+        nCOM, sCOM = funx.SpeciesInPatches(COM, NRowXs, NRow1Ys, NRow2Ys,
+                                                SRowXs, SRow1Ys, SRow2Ys)
+
+        SbyS = funx.get_SitebySpecies([nCOM, sCOM]) # get site by species matrix
+        S = len(SbyS[0]) - 3 # first 3 columns are non-species data
+
+        r1 = len(SbyS[0])
+        for i, row in enumerate(SbyS): # checking to ensure correct format for SbyS
+            r2 = len(row)
+
+            if i%2 > 0 and sum(row[2:]) == 0: # first 3 columns are non-species data
+                print 'there are no individuals in row', i
+
+            if r1 != r2:
+                print 'unequal sized rows in Site by Species matrix'
+                sys.exit()
+            r1 = r2
 
 
-    SbyS = funx.get_SitebySpecies([nCOM, sCOM]) # get site by species matrix
-    S = len(SbyS[0]) - 3 # first 3 columns are non-species data
+        mypath = os.path.dirname(os.path.realpath(__file__))
+        path = os.path.join(os.path.split(mypath)[0], 'SbyS/Tests')
+        print('Output Path = '+str(path))
 
-    r1 = len(SbyS[0])
-    for i, row in enumerate(SbyS): # checking to ensure correct format for SbyS
-        r2 = len(row)
+        directory = '/lgp='+str(round(lgp,4))+'_im='+str(round(im, 4))+'_dispkernel='+str(round(dkern, 4))
 
-        if i%2 > 0 and sum(row[2:]) == 0: # first 3 columns are non-species data
-            print 'there are no individuals in row', i
+        if not os.path.exists(path+directory):
+            os.makedirs(path+directory)
 
-        if r1 != r2:
-            print 'unequal sized rows in Site by Species matrix'
-            sys.exit()
+        fileName = os.path.join(path+directory, 'Condition'+str(ic+1))
+        OUT = open(fileName + '.txt','w')
+        writer = csv.writer(OUT, delimiter='\t')
 
-        r1 = r2
+        linedata = ['label', 'Group', 'numOtus']
+        for s in range(S):
+            linedata.append('Otu'+str(s))
 
-    fileName = os.path.join(path , 'Condition'+str(ic+1))
-    OUT = open(fileName + '.txt','w')
-    writer = csv.writer(OUT, delimiter='\t')
+        writer.writerow(linedata)
 
-    linedata = ['label', 'Group', 'numOtus']
-    for i in range(S):
-        linedata.append('Otu'+str(i))
+        for row in SbyS:
+            if len(row) != r1:
+                print 'row length has been corrupted'
+                sys.exit()
+            writer.writerow(row)
 
-    writer.writerow(linedata)
-
-    for row in SbyS:
-        if len(row) != r1:
-            print 'row length has been corrupted'
-            sys.exit()
-
-        writer.writerow(row)
-
-    OUT.close()
+        OUT.close()
