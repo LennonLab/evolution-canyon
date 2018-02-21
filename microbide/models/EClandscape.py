@@ -1,6 +1,8 @@
 from __future__ import division
 import numpy as np
 from random import sample
+import matplotlib # statements for running on servers be sure to comment out
+matplotlib.use('Agg') # if running on local machine, resets where python looks
 from matplotlib import pyplot as plt
 
 #import matplotlib # statements for running on IU servers be sure to comment out
