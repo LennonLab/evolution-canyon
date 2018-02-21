@@ -17,6 +17,15 @@ This repository contains open-source code, data, & text files for the project ex
 ### Software Versions and Dependencies
 
 
+## How to Run BIDE model
+
+
+source activate ec
+python --version
+cd ~/evolution-canyon/microbide/models/
+python ECmodel_SUPP.py
+
+
 ## Contributors
 
 [Dr. Mario Muscarella](http://mmuscarella.github.io/): Postdoctoral Research Associate, O'Dwyer Lab. Department of Plant Biology, University of Illinois, Urbana-Champaign.
