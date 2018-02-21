@@ -13,8 +13,6 @@ import numpy as np
 conditions = [['same', 'rand', 'rand'],
              ['differ', 'rand', 'rand'],
              ['same',  'env',  'env'],
-             ['differ', 'rand', 'env'],
-             ['differ', 'env',  'rand'],
              ['differ',  'env', 'env']]
 
 """ conditions is a list of modeling parameters for different conceptual
@@ -36,16 +34,6 @@ conditions = [['same', 'rand', 'rand'],
             Exiting and entering dormancy is environmental
 
         Conceptual prediction 4.
-            Environments have different effects.
-            Entering dormancy has a large stochastic component
-            Exiting dormnancy is environmental
-
-        Conceptual prediction 5.
-            Environments have different effects.
-            Entering is environmental
-            Exiting dormancy has a large stochastic component
-
-        Conceptual prediction 6.
             Environments have different effects.
             Entering is environmental, Exiting is environmental
 
