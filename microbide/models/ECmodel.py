@@ -13,8 +13,6 @@ import numpy as np
 conditions = [['same', 'rand', 'rand'],
              ['differ', 'rand', 'rand'],
              ['same',  'env',  'env'],
-             ['differ', 'rand', 'env'],
-             ['differ', 'env',  'rand'],
              ['differ',  'env', 'env']]
 
 """ conditions is a list of modeling parameters for different conceptual
@@ -37,29 +35,19 @@ conditions = [['same', 'rand', 'rand'],
 
         Conceptual prediction 4.
             Environments have different effects.
-            Entering dormancy has a large stochastic component
-            Exiting dormnancy is environmental
-
-        Conceptual prediction 5.
-            Environments have different effects.
-            Entering is environmental
-            Exiting dormancy has a large stochastic component
-
-        Conceptual prediction 6.
-            Environments have different effects.
             Entering is environmental, Exiting is environmental
 
 """
 
 ####################  GENERATE SITE BY SPECIES DATA  ###########################
 
-for j in range(100):
+for j in range(10):
     num_patches = 20 # number of patches on each side of Evolution Canyon (EC)
     N = 2 * 10**6 # Starting total abundance across the landscape
-    T = 10**4 # Time parameter
+    T = 10**7 # Time parameter
 
-    lgp = np.random.uniform(0.8, 1) # log-series parameter; underlying structure of regional pool
-    im = np.random.uniform(0.8, 1) # immigration rate
+    lgp = np.random.uniform(0.8, 1.0) # log-series parameter; underlying structure of regional pool
+    im = np.random.uniform(0.8, 1.0) # immigration rate
     dkern = 10**np.random.uniform(-3, -1) # dispersal kernel
 
     for ic, combo in enumerate(conditions):
