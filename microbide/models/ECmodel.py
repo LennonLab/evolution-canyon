@@ -51,7 +51,7 @@ T = 10**7 # Time parameter
 
 lgp = 0.92
 im = 0.999999
-kdern = -2
+kdern = 10**-2
 
 for ic, combo in enumerate(conditions):
     envDiff, enterD, exitD = combo
