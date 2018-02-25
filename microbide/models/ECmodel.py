@@ -51,7 +51,7 @@ T = 10**7 # Time parameter
 
 lgp = 0.92
 im = 0.999999
-kdern = -2
+dkern = -2
 
 for ic, combo in enumerate(conditions):
     envDiff, enterD, exitD = combo
@@ -86,7 +86,7 @@ for ic, combo in enumerate(conditions):
     mypath = os.path.dirname(os.path.realpath(__file__))
     path = os.path.join(os.path.split(mypath)[0], 'SbyS')
 
-    fileName = os.path.join(path+, 'Condition'+str(ic+1))
+    fileName = os.path.join(path, 'Condition'+str(ic+1))
     OUT = open(fileName + '.txt','w')
     writer = csv.writer(OUT, delimiter='\t')
 
