@@ -37,9 +37,20 @@ sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 
 # BIDE Model Parameter Exploration
 ```{r}
-dir <- "../microbide/SbyS/Tests"
+dir <- "../microbide/SbyS/supp"
 input <- list.dirs(dir, full.names = T)
-names <- list.dirs(dir, full.names = F)
+
+# Remove runs without all conditions
+missing <- 1
+for(i in 2:length(input)){
+  if("Condition1.txt" %in% list.files(input[i]) == FALSE | 
+     "Condition4.txt" %in% list.files(input[i]) == FALSE){
+    missing <- c(missing, i)
+  }
+}
+input <- input[-missing]
+
+names <- unlist(lapply(strsplit(input, "supp/"), "[[", 2))
 names.long <- data.frame(do.call('rbind', strsplit(names, "_", fixed = T)))
 
 lgp <- as.numeric(gsub("lgp=", "", names.long[, 1]))
@@ -47,8 +58,8 @@ im <- as.numeric(gsub("im=", "", names.long[, 2]))
 dk <- as.numeric(gsub("dispkernel=", "", names.long[, 3]))
 
 # Conditions
-cond1 <- list.files(dir, pattern = "Condition1.txt", recursive = T, full.names = T)
-cond6 <- list.files(dir, pattern = "Condition6.txt", recursive = T, full.names = T)
+cond1 <- paste(input, "Condition1.txt", sep = "/")
+cond4 <- paste(input, "Condition4.txt", sep = "/")
 ```
 
 # Pair Distances
@@ -104,14 +115,14 @@ for(i in 1:length(cond1)){
   pair.distances1[i, 4:7] <- pair.dis(cond1[i])
 }
 
-# Condition 6
-pair.distances6 <- as.data.frame(matrix(NA, nrow = length(cond6), ncol = 7))
-colnames(pair.distances6) <- c("lgp", "im", "dk", "north.mean", "north.sem", 
+# Condition 4
+pair.distances4 <- as.data.frame(matrix(NA, nrow = length(cond4), ncol = 7))
+colnames(pair.distances4) <- c("lgp", "im", "dk", "north.mean", "north.sem", 
                               "south.mean", "south.sem")
-pair.distances6$lgp <- lgp; pair.distances6$im <- im; pair.distances6$dk <- dk
+pair.distances4$lgp <- lgp; pair.distances4$im <- im; pair.distances4$dk <- dk
 
-for(i in 1:length(cond6)){
-  pair.distances6[i, 4:7] <- pair.dis(cond6[i])
+for(i in 1:length(cond4)){
+  pair.distances4[i, 4:7] <- pair.dis(cond4[i])
 }
 ```
 
@@ -158,25 +169,25 @@ axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = F, las = 1)
 box(lwd = 1.5)
 
-# Reorganize Condition 6 for Plotting
+# Reorganize Condition 4 for Plotting
 pair.dis.b <- data.frame(
-  lgp = rep(pair.distances6$lgp, 2),
-  im = rep(pair.distances6$im, 2),
-  dk = rep(pair.distances6$dk, 2),
-  dist = c(pair.distances6$north.mean, pair.distances6$south.mean), 
-  col = as.character(c(rep("sienna", length(pair.distances6$north.mean)), 
-          rep("forestgreen", length(pair.distances6$south.mean)))),
+  lgp = rep(pair.distances4$lgp, 2),
+  im = rep(pair.distances4$im, 2),
+  dk = rep(pair.distances4$dk, 2),
+  dist = c(pair.distances4$north.mean, pair.distances4$south.mean), 
+  col = as.character(c(rep("sienna", length(pair.distances4$north.mean)), 
+          rep("forestgreen", length(pair.distances4$south.mean)))),
   stringsAsFactors = F)
 pair.dis.b <- pair.dis.b[sample(1:dim(pair.dis.b)[1]),]
 
-# Plot Condition 6
+# Plot Condition 4
 plot(pair.dis.b$dist ~ pair.dis.b$lgp, col = pair.dis.b$col, pch = 16, 
      ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = T, las = 1, cex.axis = 1.25)
 mtext("Pair Dissimilarity", side = 2, line = 3.5, outer = F)
-mtext("Condition 6 (The new 4)", side = 2, line = 5.5, outer = F)
-mtext("Lognormal Parameter", side = 1, line = 3, outer = F)
+mtext("Condition 4", side = 2, line = 5.5, outer = F)
+mtext("Logseries Parameter", side = 1, line = 3, outer = F)
 box(lwd = 1.5)
 
 plot(pair.dis.b$dist ~ pair.dis.b$im, col = pair.dis.b$col, pch = 16, 
@@ -264,14 +275,14 @@ for(i in 1:length(cond1)){
   site.distances1[i, 4:7] <- site.dis(cond1[i])
 }
 
-# Condition 6
-site.distances6 <- as.data.frame(matrix(NA, nrow = length(cond6), ncol = 7))
-colnames(site.distances6) <- c("lgp", "im", "dk", "north", "south", 
+# Condition 4
+site.distances4 <- as.data.frame(matrix(NA, nrow = length(cond4), ncol = 7))
+colnames(site.distances4) <- c("lgp", "im", "dk", "north", "south", 
                               "all", "active")
-site.distances6$lgp <- lgp; site.distances6$im <- im; site.distances6$dk <- dk
+site.distances4$lgp <- lgp; site.distances4$im <- im; site.distances4$dk <- dk
 
-for(i in 1:length(cond6)){
-  site.distances6[i, 4:7] <- site.dis(cond6[i])
+for(i in 1:length(cond4)){
+  site.distances4[i, 4:7] <- site.dis(cond4[i])
 }
 ```
 
@@ -286,30 +297,30 @@ layout(matrix(c(1:6), 2, 3, byrow=T))
 
 plot(site.distances1$all ~ site.distances1$lgp, col = "gray", pch = 16, 
      ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Lognormal Parameter", ylab = "Site Dissimilarity",
+     xlab = "Logseries Parameter", ylab = "Site Dissimilarity",
      main = "Condition 1")
 
 plot(site.distances1$all ~ site.distances1$im, col = "gray", pch = 16, 
      ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Lognormal Parameter", ylab = "Site Distances, All (BC)",
+     xlab = "Logseries Parameter", ylab = "Site Distances, All (BC)",
      main = "Condition 1")
 
 plot(site.distances1$all ~ log(site.distances1$dk), col = "gray", pch = 16, 
      ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Lognormal Parameter", ylab = "Site Distances, All (BC)",
+     xlab = "Logseries Parameter", ylab = "Site Distances, All (BC)",
      main = "Condition 1")
 
-plot(site.distances6$all ~ site.distances6$lgp, col = "gray", pch = 16, 
+plot(site.distances4$all ~ site.distances4$lgp, col = "gray", pch = 16, 
      ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Lognormal Parameter", ylab = "Site Dissimilarity")
+     xlab = "Logseries Parameter", ylab = "Site Dissimilarity")
 
-plot(site.distances6$all ~ site.distances6$im, col = "gray", pch = 16, 
+plot(site.distances4$all ~ site.distances4$im, col = "gray", pch = 16, 
      ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Lognormal Parameter", ylab = "Site Distances, All (BC)")
+     xlab = "Logseries Parameter", ylab = "Site Distances, All (BC)")
 
-plot(site.distances6$all ~ log(site.distances6$dk), col = "gray", pch = 16, 
+plot(site.distances4$all ~ log(site.distances4$dk), col = "gray", pch = 16, 
      ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Lognormal Parameter", ylab = "Site Distances, All (BC)")
+     xlab = "Logseries Parameter", ylab = "Site Distances, All (BC)")
 
 
 
