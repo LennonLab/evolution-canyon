@@ -25,6 +25,11 @@ python --version
 cd ~/evolution-canyon/microbide/models/
 python ECmodel_SUPP.py
 
+source activate ec
+python --version
+cd ~/evolution-canyon/microbide/models/
+python ECmodel.py
+
 
 ## Contributors
 
