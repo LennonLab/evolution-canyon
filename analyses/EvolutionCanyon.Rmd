@@ -38,7 +38,7 @@ sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 theory and predictions of how environmental filtering and dormancy influence 
 community assembly (with dispersal being implicit and more or less high) 
 ```{r fig.width=2, fig.height=4,echo=FALSE,fig.cap="Figure 1: Conceptual Model"}
-img <- readPNG("../figures/ConceptualModel.png")
+img <- readPNG("../figures/ConceptualModel_new.png")
 grid.raster(img)
 ```
 
@@ -54,10 +54,94 @@ grid.raster(img2, x = 0.5, y = 0.35, width=0.5)
 # Figure 3: BIDE Model Ordinations
 Ordination of simulated data capturing processes/scenarios described in Fig. 1. 
 ```{r}
-dir <- "../microbide/SbyS/"
-dir <- "../microbide/SbyS/Tests/lgp=0.926_im=0.8711_dispkernel=0.0262/"
+# Define Analysis
+ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
+
+  # Example Data
+  #   shared     = "../microbide/SbyS/Condition1.txt"
+  #   cutoff     = "0.03"
+  #   design     = "../data/simmy.design.txt"
+
+  source("../bin/DiversityFunctions.r")
+  require("vegan")
+
+  # Import Site by OTU Matrix
+  ec_data.sim <- read.otu(shared, "0.03")
+  design <- read.delim(design, header=T, row.names=1)
+
+  # Remove OTUs with less than ten observations
+  ec_data_red <- ec_data.sim[,colSums(ec_data.sim) >= 2]
+
+  # Create factors for model
+  slope <- design$slope       # factor 1
+  molecule <- design$molecule # factor 2
+  paired <- design$paired     # pairs
+  site <- design$site         # sites
+  station <- design$station
+
+  # Create Y matrix with factor 1 and 2
+  slope.molecule <- data.frame(cbind(as.character(slope),
+    as.character(molecule)))
+
+  # create unique treat ID vector
+  slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")],
+    sep = ""))
+  pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:5), each=2),
+    rep(seq(1:10), each=2), rep(seq(1:9), each=2))
+
+  # Create a vector of molecules by station
+  station.molecule.concat <- paste(station, molecule, sep = "")
+
+  # Rarefied
+  floor(min(rowSums(ec_data_red)))
+  
+  # Calculate Presense Absence
+  dataPA <- (ec_data_red > 0)*1
+  
+  # Calculating Relative Abundance
+  dataREL <- ec_data_red
+  for(i in 1:nrow(ec_data_red)){
+    dataREL[i,] = ec_data_red[i,]/sum(ec_data_red[i,])
+  }
+  
+  # Log Transform Relative Abundance
+  dataREL.l <- decostand(dataREL,method="log")
+
+  # Chord Transformation
+  dataREL.c <- decostand(dataREL, method="normalize")
+
+  # Hellinger Transformation
+  dataREL.h <- decostand(dataREL, method="hellinger")
+
+  # Distance Based Redundancy Analysis
+  dbRDA <- capscale(dataREL ~ slope + molecule , distance="bray")
+
+#   head(summary(dbRDA))
+#   anova(dbRDA, by="terms", permu=999)
+#   varpart(dataREL,  ~ slope, ~ molecule)
+
+  # Percent Variance Explained Using PCoA (Axis 1,2,3)
+  explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+  explainvar2 <- round(dbRDA$CCA$eig[2]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+
+  #RDA <- as.data.frame(dbRDA$CCA$wa)
+  RDA <- as.data.frame(scores(dbRDA, display = c("wa"), scaling = "sites"))
+  RDA$molecule <- design$molecule
+  RDA$slope <- design$slope
+  RDA$labs <- slope.molecule.concat
+
+  RDA.out <- list("RDA" = RDA,
+                  "explainvar1" = explainvar1,
+                  "explainvar2" = explainvar2)
+
+  return(RDA.out)
+
+}
+
+
+dir <- "../microbide/SbyS/supp/lgp=0.9202_im=0.9921_dispkernel=0.013/"
 input <- list.files(dir, "*.txt")
-input <- input[c(1, 2, 3, 6)]
+input <- input[c(1, 2, 3, 4)]
 
 input
 test <- read.delim(paste(dir, input[1], sep = ""), header = T)

@@ -201,7 +201,7 @@ plot(pair.dis.b$dist ~ log10(pair.dis.b$dk), col = pair.dis.b$col, pch = 16,
      ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(-3, -2, -1))
 axis(side = 2, labels = F, las = 1)
-mtext(expression(paste("Log"[10], "(Dispersal Density Kernel)")), 
+mtext(expression(paste("Log"[10], " (Dispersal Density Kernel)")), 
       side = 1, line = 3, outer = F)
 box(lwd = 1.5)
 
@@ -295,33 +295,166 @@ png(filename = "../figures/BIDE_SiteDistance.png",
 par(mfrow=c(1,1), mar=c(0.5,0.5,0.5,0.5), oma=c(5, 8, 1, 1))
 layout(matrix(c(1:6), 2, 3, byrow=T))
 
-plot(site.distances1$all ~ site.distances1$lgp, col = "gray", pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Logseries Parameter", ylab = "Site Dissimilarity",
-     main = "Condition 1")
+# Reorganize Condition 1 for Plotting
+site.dis.b <- data.frame(
+  lgp = rep(site.distances1$lgp, 4),
+  im = rep(site.distances1$im, 4),
+  dk = rep(site.distances1$dk, 4),
+  dist = c(site.distances1$north, site.distances1$south,
+           site.distances1$active, site.distances1$all), 
+  col = as.character(c(rep("sienna", length(site.distances1$north)), 
+          rep("forestgreen", length(site.distances1$south)),
+          rep("cornflowerblue", length(site.distances1$active)),
+          rep("magenta", length(site.distances1$all)))),
+  stringsAsFactors = F)
+site.dis.b <- site.dis.b[sample(1:dim(site.dis.b)[1]),]
 
-plot(site.distances1$all ~ site.distances1$im, col = "gray", pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Logseries Parameter", ylab = "Site Distances, All (BC)",
-     main = "Condition 1")
 
-plot(site.distances1$all ~ log(site.distances1$dk), col = "gray", pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Logseries Parameter", ylab = "Site Distances, All (BC)",
-     main = "Condition 1")
+plot(site.dis.b$dist ~ site.dis.b$lgp, col = site.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
+axis(side = 2, labels = T, las = 1, cex.axis = 1.25)
+mtext("Site Dissimilarity", side = 2, line = 3.5, outer = F)
+mtext("Condition 1", side = 2, line = 5.5, outer = F)
+box(lwd = 1.5)
 
-plot(site.distances4$all ~ site.distances4$lgp, col = "gray", pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Logseries Parameter", ylab = "Site Dissimilarity")
+x1 <- site.distances1$lgp; x1.o <- order(x1)
+loess.50 <- loess(site.distances1$north[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(site.distances1$south[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+loess.50 <- loess(site.distances1$active[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="cornflowerblue", lwd = 2)
+loess.50 <- loess(site.distances1$all[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="magenta", lwd = 2)
 
-plot(site.distances4$all ~ site.distances4$im, col = "gray", pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Logseries Parameter", ylab = "Site Distances, All (BC)")
+legend("topleft", legend = c("North", "South", "Active", "All"),  
+       col = c("sienna", "forestgreen", "cornflowerblue", "magenta"),
+       lty = 1, bty = "n")
 
-plot(site.distances4$all ~ log(site.distances4$dk), col = "gray", pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75,
-     xlab = "Logseries Parameter", ylab = "Site Distances, All (BC)")
+plot(site.dis.b$dist ~ site.dis.b$im, col = site.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
+axis(side = 2, labels = F, las = 1)
+box(lwd = 1.5)
 
+x1 <- site.distances1$im; x1.o <- order(x1)
+loess.50 <- loess(site.distances1$north[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(site.distances1$south[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+loess.50 <- loess(site.distances1$active[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="cornflowerblue", lwd = 2)
+loess.50 <- loess(site.distances1$all[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="magenta", lwd = 2)
+
+plot(site.dis.b$dist ~ log10(site.dis.b$dk), col = site.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
+axis(side = 2, labels = F, las = 1)
+box(lwd = 1.5)
+
+x1 <- log10(site.distances1$dk); x1.o <- order(x1)
+loess.50 <- loess(site.distances1$north[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(site.distances1$south[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+loess.50 <- loess(site.distances1$active[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="cornflowerblue", lwd = 2)
+loess.50 <- loess(site.distances1$all[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="magenta", lwd = 2)
+
+# Reorganize Condition 4 for Plotting
+site.dis.b <- data.frame(
+  lgp = rep(site.distances4$lgp, 4),
+  im = rep(site.distances4$im, 4),
+  dk = rep(site.distances4$dk, 4),
+  dist = c(site.distances4$north, site.distances4$south,
+           site.distances4$active, site.distances4$all), 
+  col = as.character(c(rep("sienna", length(site.distances4$north)), 
+          rep("forestgreen", length(site.distances4$south)),
+          rep("cornflowerblue", length(site.distances4$active)),
+          rep("magenta", length(site.distances4$all)))),
+  stringsAsFactors = F)
+site.dis.b <- site.dis.b[sample(1:dim(site.dis.b)[1]),]
+
+plot(site.dis.b$dist ~ site.dis.b$lgp, col = site.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(0.8, 0.9, 1.0))
+axis(side = 2, labels = T, las = 1, cex.axis = 1.25)
+mtext("Site Dissimilarity", side = 2, line = 3.5, outer = F)
+mtext("Condition 4", side = 2, line = 5.5, outer = F)
+mtext("Logseries Parameter", side = 1, line = 3, outer = F)
+box(lwd = 1.5)
+
+x1 <- site.distances4$lgp; x1.o <- order(x1)
+loess.50 <- loess(site.distances4$north[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(site.distances4$south[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+loess.50 <- loess(site.distances4$active[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="cornflowerblue", lwd = 2)
+loess.50 <- loess(site.distances4$all[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="magenta", lwd = 2)
+
+plot(site.dis.b$dist ~ site.dis.b$im, col = site.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(0.8, 0.9, 1.0))
+axis(side = 2, labels = F, las = 1)
+mtext("Immigration Rate", side = 1, line = 3, outer = F)
+box(lwd = 1.5)
+
+x1 <- site.distances4$im; x1.o <- order(x1)
+loess.50 <- loess(site.distances4$north[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(site.distances4$south[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+loess.50 <- loess(site.distances4$active[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="cornflowerblue", lwd = 2)
+loess.50 <- loess(site.distances4$all[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="magenta", lwd = 2)
+
+plot(site.dis.b$dist ~ log10(site.dis.b$dk), col = site.dis.b$col, pch = 16, 
+     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(-3, -2, -1))
+axis(side = 2, labels = F, las = 1)
+mtext(expression(paste("Log"[10], " (Dispersal Density Kernel)")), 
+      side = 1, line = 3, outer = F)
+box(lwd = 1.5)
+
+x1 <- log10(site.distances4$dk); x1.o <- order(x1)
+loess.50 <- loess(site.distances4$north[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(site.distances4$south[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+loess.50 <- loess(site.distances4$active[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="cornflowerblue", lwd = 2)
+loess.50 <- loess(site.distances4$all[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="magenta", lwd = 2)
 
 
 
