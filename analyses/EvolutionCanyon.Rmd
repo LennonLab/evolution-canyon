@@ -94,6 +94,7 @@ ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
 
   # Rarefied
   floor(min(rowSums(ec_data_red)))
+  ec_data_red <- rrarefy(ec_data_red, 0.9 * min(rowSums(ec_data_red)))
   
   # Calculate Presense Absence
   dataPA <- (ec_data_red > 0)*1
@@ -114,7 +115,7 @@ ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
   dataREL.h <- decostand(dataREL, method="hellinger")
 
   # Distance Based Redundancy Analysis
-  dbRDA <- capscale(dataREL ~ slope + molecule , distance="bray")
+  dbRDA <- capscale(dataREL.l ~ slope + molecule , distance="bray")
 
 #   head(summary(dbRDA))
 #   anova(dbRDA, by="terms", permu=999)
@@ -140,6 +141,8 @@ ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
 
 
 dir <- "../microbide/SbyS/supp/lgp=0.9202_im=0.9921_dispkernel=0.013/"
+dir <- "../microbide/SbyS/supp/lgp=0.9202_im=0.9921_dispkernel=0.013/"
+
 input <- list.files(dir, "*.txt")
 input <- input[c(1, 2, 3, 4)]
 

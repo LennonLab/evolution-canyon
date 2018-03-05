@@ -144,7 +144,7 @@ def microbide(combo, Ncounts, Nverts, Scounts, Sverts, N, T, ic, lgp, im, dkern)
                 y = np.random.normal(loc=COM[i][3], scale=dkern)
 
                 if x > 1 or x < 0: COM.pop(i)
-                elif y > 1 or y < 1: COM.pop(i)
+                elif y > 1 or y < 0: COM.pop(i)
 
         t += 1
         if t%1000 == 0:

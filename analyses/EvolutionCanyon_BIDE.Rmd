@@ -65,8 +65,11 @@ cond4 <- paste(input, "Condition4.txt", sep = "/")
 # Pair Distances
 ```{r}
 # Define Function
-pair.dis <- function(x){
+pair.dis <- function(x, rarefy = FALSE){
   sbys <- read.otu(x, "0.03")
+  if (rarefy){
+    sbys <- rrarefy(sbys, min(rowSums(sbys)))
+  } else {}
   grep("north", rownames(sbys))
   grep("south", rownames(sbys))
   grep("all", rownames(sbys))
@@ -74,6 +77,11 @@ pair.dis <- function(x){
   slope <- gsub("[0-9]*_.*", "", rownames(sbys))
   molecule <- gsub(".*_", "", rownames(sbys))
   pair <- gsub("_.*", "", gsub(".*th", "", rownames(sbys)))
+  
+  # Remove OTUs with < 1 global occurence
+  if(min(colSums(sbys)) < 2){
+    sbys <- sbys[, -c(which(colSums(sbys) < 2))]
+  }
   
   # Calculating Relative Abundance
   dataREL <- sbys
@@ -94,9 +102,9 @@ pair.dis <- function(x){
   bide.pcoa <- cmdscale(bide.dist, eig = TRUE, k = 5)
   
   # Distance Between Pairs
-  pairs <- as.matrix(bide.dist)[seq(1, 80, by = 2), seq(2, 80, by = 2)]
-  pair.dist <- diag(pairs)
-  pair.dist.slope <- gsub("[0-9]*_.*", "", row.names(pairs))
+  pair.m <- as.matrix(bide.dist)[seq(1, 80, by = 2), seq(2, 80, by = 2)]
+  pair.dist <- diag(pair.m)
+  pair.dist.slope <- gsub("[0-9]*_.*", "", row.names(pair.m))
   m <- aggregate(pair.dist, by = list(pair.dist.slope), mean)
   s <- aggregate(pair.dist, by = list(pair.dist.slope), sem)
   out <- data.frame("north.mean" = m[1, 2], "north.sem" = s[1, 2],
@@ -112,7 +120,7 @@ colnames(pair.distances1) <- c("lgp", "im", "dk", "north.mean", "north.sem",
 pair.distances1$lgp <- lgp; pair.distances1$im <- im; pair.distances1$dk <- dk
 
 for(i in 1:length(cond1)){
-  pair.distances1[i, 4:7] <- pair.dis(cond1[i])
+  pair.distances1[i, 4:7] <- pair.dis(cond1[i], rarefy = TRUE)
 }
 
 # Condition 4
@@ -122,7 +130,7 @@ colnames(pair.distances4) <- c("lgp", "im", "dk", "north.mean", "north.sem",
 pair.distances4$lgp <- lgp; pair.distances4$im <- im; pair.distances4$dk <- dk
 
 for(i in 1:length(cond4)){
-  pair.distances4[i, 4:7] <- pair.dis(cond4[i])
+  pair.distances4[i, 4:7] <- pair.dis(cond4[i], rarefy = TRUE)
 }
 ```
 
@@ -157,17 +165,48 @@ mtext("Pair Dissimilarity", side = 2, line = 3.5, outer = F)
 mtext("Condition 1", side = 2, line = 5.5, outer = F)
 box(lwd = 1.5)
 
+x1 <- pair.distances1$lgp; x1.o <- order(x1)
+loess.50 <- loess(pair.distances1$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(pair.distances1$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+
+legend("topleft", legend = c("North", "South"),  
+       col = c("sienna", "forestgreen"),
+       lty = 1, bty = "n")
+
 plot(pair.dis.b$dist ~ pair.dis.b$im, col = pair.dis.b$col, pch = 16, 
      ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = F, las = 1)
 box(lwd = 1.5)
 
+
+x1 <- pair.distances1$im; x1.o <- order(x1)
+loess.50 <- loess(pair.distances1$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(pair.distances1$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+
+
 plot(pair.dis.b$dist ~ log10(pair.dis.b$dk), col = pair.dis.b$col, pch = 16, 
      ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = F, las = 1)
 box(lwd = 1.5)
+
+x1 <- log10(pair.distances1$dk); x1.o <- order(x1)
+loess.50 <- loess(pair.distances1$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(pair.distances1$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+
 
 # Reorganize Condition 4 for Plotting
 pair.dis.b <- data.frame(
@@ -190,12 +229,30 @@ mtext("Condition 4", side = 2, line = 5.5, outer = F)
 mtext("Logseries Parameter", side = 1, line = 3, outer = F)
 box(lwd = 1.5)
 
+x1 <- pair.distances4$lgp; x1.o <- order(x1)
+loess.50 <- loess(pair.distances4$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(pair.distances4$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+
 plot(pair.dis.b$dist ~ pair.dis.b$im, col = pair.dis.b$col, pch = 16, 
      ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = F, las = 1)
 mtext("Immigration Rate", side = 1, line = 3, outer = F)
 box(lwd = 1.5)
+
+x1 <- pair.distances4$im; x1.o <- order(x1)
+loess.50 <- loess(pair.distances4$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(pair.distances4$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+
+
 
 plot(pair.dis.b$dist ~ log10(pair.dis.b$dk), col = pair.dis.b$col, pch = 16, 
      ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
@@ -204,6 +261,15 @@ axis(side = 2, labels = F, las = 1)
 mtext(expression(paste("Log"[10], " (Dispersal Density Kernel)")), 
       side = 1, line = 3, outer = F)
 box(lwd = 1.5)
+
+x1 <- log10(pair.distances4$dk); x1.o <- order(x1)
+loess.50 <- loess(pair.distances4$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+loess.50 <- loess(pair.distances4$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
+smoothed.50 <- predict(loess.50) 
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+
 
 # Close Plot Device
 dev.off()
@@ -219,8 +285,11 @@ grid.raster(img)
 
 # Site Distances
 ```{r}
-site.dis <- function(x){
+site.dis <- function(x, rarefy = FALSE){
   sbys <- read.otu(x, "0.03")
+  if (rarefy){
+    sbys <- rrarefy(sbys, min(rowSums(sbys)))
+  } else {}
   grep("north", rownames(sbys))
   grep("south", rownames(sbys))
   grep("all", rownames(sbys))
@@ -229,6 +298,10 @@ site.dis <- function(x){
   molecule <- gsub(".*_", "", rownames(sbys))
   pair <- gsub("_.*", "", gsub(".*th", "", rownames(sbys)))
   
+  # Remove OTUs with < 1 global occurence
+  if(min(colSums(sbys)) < 2){
+    sbys <- sbys[, -c(which(colSums(sbys) < 2))]
+  }
   # Calculating Relative Abundance
   dataREL <- sbys
   for(i in 1:nrow(sbys)){
@@ -272,7 +345,7 @@ colnames(site.distances1) <- c("lgp", "im", "dk", "north", "south",
 site.distances1$lgp <- lgp; site.distances1$im <- im; site.distances1$dk <- dk
 
 for(i in 1:length(cond1)){
-  site.distances1[i, 4:7] <- site.dis(cond1[i])
+  site.distances1[i, 4:7] <- site.dis(cond1[i], rarefy = T)
 }
 
 # Condition 4
@@ -282,7 +355,7 @@ colnames(site.distances4) <- c("lgp", "im", "dk", "north", "south",
 site.distances4$lgp <- lgp; site.distances4$im <- im; site.distances4$dk <- dk
 
 for(i in 1:length(cond4)){
-  site.distances4[i, 4:7] <- site.dis(cond4[i])
+  site.distances4[i, 4:7] <- site.dis(cond4[i],  rarefy = T)
 }
 ```
 
