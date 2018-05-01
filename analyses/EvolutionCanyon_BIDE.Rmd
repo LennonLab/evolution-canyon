@@ -93,10 +93,10 @@ pair.dis <- function(x, rarefy = FALSE){
   dataREL.l <- suppressWarnings(decostand(dataREL,method="log"))
   
   # Distance Based Redundancy Analysis
-  dbRDA <- capscale(dataREL.l ~ slope + molecule , distance="bray", warn = F)
+  dbRDA <- capscale(dataREL ~ slope + molecule , distance="bray", warn = F)
   
   # Calculate BC Dist
-  bide.dist <- vegdist(dataREL.l, method = "bray", binary = "FALSE")
+  bide.dist <- vegdist(dataREL, method = "bray", binary = "FALSE")
   
   # Principal Coordinates Analysis
   bide.pcoa <- cmdscale(bide.dist, eig = TRUE, k = 5)
@@ -158,7 +158,7 @@ pair.dis.b <- pair.dis.b[sample(1:dim(pair.dis.b)[1]),]
 
 # Plot Condition 1
 plot(pair.dis.b$dist ~ pair.dis.b$lgp, col = pair.dis.b$col, pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+     ylim = c(0, 0.3), las = 1, cex = 1, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = T, las = 1, cex.axis = 1.25)
 mtext("Pair Dissimilarity", side = 2, line = 3.5, outer = F)
@@ -168,17 +168,17 @@ box(lwd = 1.5)
 x1 <- pair.distances1$lgp; x1.o <- order(x1)
 loess.50 <- loess(pair.distances1$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 3)
 loess.50 <- loess(pair.distances1$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 3)
 
 legend("topleft", legend = c("North", "South"),  
        col = c("sienna", "forestgreen"),
-       lty = 1, bty = "n")
+       lty = 1, bty = "n", cex = 1.5, lwd = 2)
 
 plot(pair.dis.b$dist ~ pair.dis.b$im, col = pair.dis.b$col, pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+     ylim = c(0, 0.3), las = 1, cex = 1, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = F, las = 1)
 box(lwd = 1.5)
@@ -187,14 +187,14 @@ box(lwd = 1.5)
 x1 <- pair.distances1$im; x1.o <- order(x1)
 loess.50 <- loess(pair.distances1$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 3)
 loess.50 <- loess(pair.distances1$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 3)
 
 
 plot(pair.dis.b$dist ~ log10(pair.dis.b$dk), col = pair.dis.b$col, pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+     ylim = c(0, 0.3), las = 1, cex = 1, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = F, las = 1, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = F, las = 1)
 box(lwd = 1.5)
@@ -202,10 +202,10 @@ box(lwd = 1.5)
 x1 <- log10(pair.distances1$dk); x1.o <- order(x1)
 loess.50 <- loess(pair.distances1$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 3)
 loess.50 <- loess(pair.distances1$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 3)
 
 
 # Reorganize Condition 4 for Plotting
@@ -221,7 +221,7 @@ pair.dis.b <- pair.dis.b[sample(1:dim(pair.dis.b)[1]),]
 
 # Plot Condition 4
 plot(pair.dis.b$dist ~ pair.dis.b$lgp, col = pair.dis.b$col, pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+     ylim = c(0, 0.3), las = 1, cex = 1, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = T, las = 1, cex.axis = 1.25)
 mtext("Pair Dissimilarity", side = 2, line = 3.5, outer = F)
@@ -232,13 +232,13 @@ box(lwd = 1.5)
 x1 <- pair.distances4$lgp; x1.o <- order(x1)
 loess.50 <- loess(pair.distances4$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 3)
 loess.50 <- loess(pair.distances4$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 3)
 
 plot(pair.dis.b$dist ~ pair.dis.b$im, col = pair.dis.b$col, pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+     ylim = c(0, 0.3), las = 1, cex = 1, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = F, las = 1)
 mtext("Immigration Rate", side = 1, line = 3, outer = F)
@@ -247,15 +247,15 @@ box(lwd = 1.5)
 x1 <- pair.distances4$im; x1.o <- order(x1)
 loess.50 <- loess(pair.distances4$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 3)
 loess.50 <- loess(pair.distances4$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 3)
 
 
 
 plot(pair.dis.b$dist ~ log10(pair.dis.b$dk), col = pair.dis.b$col, pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+     ylim = c(0, 0.3), las = 1, cex = 1, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(-3, -2, -1))
 axis(side = 2, labels = F, las = 1)
 mtext(expression(paste("Log"[10], " (Dispersal Density Kernel)")), 
@@ -265,10 +265,10 @@ box(lwd = 1.5)
 x1 <- log10(pair.distances4$dk); x1.o <- order(x1)
 loess.50 <- loess(pair.distances4$north.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="sienna", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="sienna", lwd = 3)
 loess.50 <- loess(pair.distances4$south.mean[x1.o] ~ x1[x1.o], span=0.5) 
 smoothed.50 <- predict(loess.50) 
-lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 2)
+lines(smoothed.50, x=sort(x1), col="forestgreen", lwd = 3)
 
 
 # Close Plot Device
@@ -288,7 +288,7 @@ grid.raster(img)
 site.dis <- function(x, rarefy = FALSE){
   sbys <- read.otu(x, "0.03")
   if (rarefy){
-    sbys <- rrarefy(sbys, min(rowSums(sbys)))
+    sbys <- rrarefy(sbys, min(rowSums(sbys)) * 0.9)
   } else {}
   grep("north", rownames(sbys))
   grep("south", rownames(sbys))
@@ -312,10 +312,10 @@ site.dis <- function(x, rarefy = FALSE){
   dataREL.l <- suppressWarnings(decostand(dataREL,method="log"))
   
   # Distance Based Redundancy Analysis
-  dbRDA <- capscale(dataREL.l ~ slope + molecule , distance="bray", warn = F)
+  dbRDA <- capscale(dataREL ~ slope + molecule , distance="bray", warn = F)
   
   # Calculate BC Dist
-  bide.dist <- vegdist(dataREL.l, method = "bray", binary = "FALSE")
+  bide.dist <- vegdist(dataREL, method = "bray", binary = "FALSE")
   
   # Principal Coordinates Analysis
   bide.pcoa <- cmdscale(bide.dist, eig = TRUE, k = 5)
@@ -345,7 +345,7 @@ colnames(site.distances1) <- c("lgp", "im", "dk", "north", "south",
 site.distances1$lgp <- lgp; site.distances1$im <- im; site.distances1$dk <- dk
 
 for(i in 1:length(cond1)){
-  site.distances1[i, 4:7] <- site.dis(cond1[i], rarefy = T)
+  site.distances1[i, 4:7] <- site.dis(cond1[i], rarefy = F)
 }
 
 # Condition 4
@@ -355,7 +355,7 @@ colnames(site.distances4) <- c("lgp", "im", "dk", "north", "south",
 site.distances4$lgp <- lgp; site.distances4$im <- im; site.distances4$dk <- dk
 
 for(i in 1:length(cond4)){
-  site.distances4[i, 4:7] <- site.dis(cond4[i],  rarefy = T)
+  site.distances4[i, 4:7] <- site.dis(cond4[i],  rarefy = F)
 }
 ```
 
@@ -405,7 +405,8 @@ loess.50 <- loess(site.distances1$all[x1.o] ~ x1[x1.o], span=0.5)
 smoothed.50 <- predict(loess.50) 
 lines(smoothed.50, x=sort(x1), col="magenta", lwd = 2)
 
-legend("topleft", legend = c("North", "South", "Active", "All"),  
+legend("topleft", legend = c("North (Active/All)", 
+                             "South (Active/All)", "Active (North/South)", "All (North/South)"),  
        col = c("sienna", "forestgreen", "cornflowerblue", "magenta"),
        lty = 1, bty = "n")
 
@@ -464,7 +465,7 @@ site.dis.b <- data.frame(
 site.dis.b <- site.dis.b[sample(1:dim(site.dis.b)[1]),]
 
 plot(site.dis.b$dist ~ site.dis.b$lgp, col = site.dis.b$col, pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+     ylim = c(0, 0.5), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = T, las = 1, cex.axis = 1.25)
 mtext("Site Dissimilarity", side = 2, line = 3.5, outer = F)
@@ -487,7 +488,7 @@ smoothed.50 <- predict(loess.50)
 lines(smoothed.50, x=sort(x1), col="magenta", lwd = 2)
 
 plot(site.dis.b$dist ~ site.dis.b$im, col = site.dis.b$col, pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+     ylim = c(0, 0.5), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(0.8, 0.9, 1.0))
 axis(side = 2, labels = F, las = 1)
 mtext("Immigration Rate", side = 1, line = 3, outer = F)
@@ -508,7 +509,7 @@ smoothed.50 <- predict(loess.50)
 lines(smoothed.50, x=sort(x1), col="magenta", lwd = 2)
 
 plot(site.dis.b$dist ~ log10(site.dis.b$dk), col = site.dis.b$col, pch = 16, 
-     ylim = c(0, 0.2), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
+     ylim = c(0, 0.5), las = 1, cex = 0.75, xlab = "", ylab = "", axes = F)
 axis(side = 1, labels = T, las = 1, cex.axis = 1.25, at = c(-3, -2, -1))
 axis(side = 2, labels = F, las = 1)
 mtext(expression(paste("Log"[10], " (Dispersal Density Kernel)")), 
