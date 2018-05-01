@@ -345,7 +345,7 @@ colnames(site.distances1) <- c("lgp", "im", "dk", "north", "south",
 site.distances1$lgp <- lgp; site.distances1$im <- im; site.distances1$dk <- dk
 
 for(i in 1:length(cond1)){
-  site.distances1[i, 4:7] <- site.dis(cond1[i], rarefy = F)
+  site.distances1[i, 4:7] <- site.dis(cond1[i], rarefy = T)
 }
 
 # Condition 4
@@ -355,7 +355,7 @@ colnames(site.distances4) <- c("lgp", "im", "dk", "north", "south",
 site.distances4$lgp <- lgp; site.distances4$im <- im; site.distances4$dk <- dk
 
 for(i in 1:length(cond4)){
-  site.distances4[i, 4:7] <- site.dis(cond4[i],  rarefy = F)
+  site.distances4[i, 4:7] <- site.dis(cond4[i],  rarefy = T)
 }
 ```
 
