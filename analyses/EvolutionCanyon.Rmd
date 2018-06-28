@@ -28,6 +28,7 @@ require("vegan")
 
 # Import Scripts
 source("../bin/ec.dbRDA.R")
+source("../bin/MothurTools.R")
 
 # Common Functions
 sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
@@ -51,9 +52,13 @@ grid.raster(img1, x=0.5, y = 0.75, width=0.5)
 grid.raster(img2, x = 0.5, y = 0.35, width=0.5)
 ```
 
-# Figure 3: BIDE Model Ordinations
+# BIDE Model Ordinations
 Ordination of simulated data capturing processes/scenarios described in Fig. 1. 
 ```{r}
+# Close Plot Device
+dev.off()
+graphics.off()
+
 # Define Analysis
 ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
 
@@ -69,7 +74,7 @@ ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
   ec_data.sim <- read.otu(shared, "0.03")
   design <- read.delim(design, header=T, row.names=1)
 
-  # Remove OTUs with less than ten observations
+  # Remove OTUs with less than two observations
   ec_data_red <- ec_data.sim[,colSums(ec_data.sim) >= 2]
 
   # Create factors for model
@@ -106,14 +111,17 @@ ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
   }
   
   # Log Transform Relative Abundance
-  dataREL.l <- decostand(dataREL,method="log")
+  dataREL.l <- suppressWarnings(decostand(dataREL,method="log"))
 
   # Chord Transformation
-  dataREL.c <- decostand(dataREL, method="normalize")
+  dataREL.c <- suppressWarnings(decostand(dataREL, method="normalize"))
 
   # Hellinger Transformation
-  dataREL.h <- decostand(dataREL, method="hellinger")
+  dataREL.h <- suppressWarnings(decostand(dataREL, method="hellinger"))
 
+  # PCoA
+  PCoA <- cmdscale(vegdist(dataREL.l, method = "bray"), k = 2, eig = T)
+  
   # Distance Based Redundancy Analysis
   dbRDA <- capscale(dataREL.l ~ slope + molecule , distance="bray")
 
@@ -122,18 +130,33 @@ ec.dbRDA.sim <- function(shared = " ", level = "0.03", design = " "){
 #   varpart(dataREL,  ~ slope, ~ molecule)
 
   # Percent Variance Explained Using PCoA (Axis 1,2,3)
-  explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
-  explainvar2 <- round(dbRDA$CCA$eig[2]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+  #explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+  #explainvar2 <- round(dbRDA$CCA$eig[2]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
+  explainvar1 <- round(PCoA$eig[1]/sum(PCoA$eig) * 100, 2)
+  explainvar2 <- round(PCoA$eig[2]/sum(PCoA$eig) * 100, 2)
 
   #RDA <- as.data.frame(dbRDA$CCA$wa)
   RDA <- as.data.frame(scores(dbRDA, display = c("wa"), scaling = "sites"))
   RDA$molecule <- design$molecule
   RDA$slope <- design$slope
   RDA$labs <- slope.molecule.concat
+  
+  # Permanova
+  adonis.out <- adonis(dataREL.l ~ RDA$molecule * RDA$slope)
+  
+  # RDA Stats
+  rda.stats <- anova(dbRDA, by="terms", permu=999)
+  var.part <- varpart(vegdist(dataREL.l, method = "bray"),  ~ slope, ~ molecule)
+  
+  # PCoA
+  ec.bc <- vegdist(dataREL.l, method = "bray")
+  ec.pcoa <- cmdscale(ec.bc, k = 3, eig = T)
 
-  RDA.out <- list("RDA" = RDA,
+  RDA.out <- list("RDA" = RDA, "PCoA" = PCoA,
                   "explainvar1" = explainvar1,
-                  "explainvar2" = explainvar2)
+                  "explainvar2" = explainvar2, 
+                  "Permanova" = adonis.out,
+                  "dbRDA" = rda.stats, "Var_Part" = var.part)
 
   return(RDA.out)
 
@@ -152,6 +175,7 @@ rowSums(as.matrix(test[ 1, -c(1:3)]))
 
 # Create Blank Output
 dbRDA.output <- list()
+permanova.output <- list()
 
 # Run PCoA On All Samples
 for (i in 1:length(input)){
@@ -159,12 +183,15 @@ for (i in 1:length(input)){
                                              level = "0.03", 
                                              design = "../data/simmy.design.txt")
 }
+```
 
+## Figure 3
+```{r}
 png(filename = "../figures/BIDE_Ordination.png", 
     width = 1600, height = 1200, res = 96 * 2)
 
 # Plot Parameters
-par(mfrow=c(1,1), mar=c(0.5,0.5,0,0), oma=c(6, 5, 1, 1))
+par(mfrow=c(1,1), mar=c(0.5,0.5,0,0), oma=c(6, 6, 1, 1))
 layout(matrix(c(5, 5, 1:4), 3, 2, byrow=T), heights=c(1, rep(5, 2)))
 
 labs <- c("A", "B", "C", "D", "E", "F")
@@ -174,27 +201,30 @@ y.lab <- c(T, F, T, F)
 # Plot Each
 for (p in 1:length(dbRDA.output)){
   RDA <- dbRDA.output[[p]]$RDA
+  PCoA <- dbRDA.output[[p]]$PCoA
   explainvar1 <- dbRDA.output[[p]]$explainvar1
   explainvar2 <- dbRDA.output[[p]]$explainvar2
   print(explainvar1)
   print(explainvar2)
 
-  x.dim <- c(-0.6, 0.6)
-  y.dim <- c(-0.5, 0.5)
+  x.dim <- c(-0.09, 0.09)
+  y.dim <- c(-0.08, 0.08)
 
   # Initiate Plot
-  plot(RDA$CAP1, RDA$CAP2, xlab = "", ylab="",
+  plot(PCoA$points[, 1], PCoA$points[, 2], xlab = "", ylab="",
     xlim=x.dim,ylim= y.dim, pch=16, cex=2.0, type="n",xaxt="n",
     yaxt="n", cex.lab=1.5, cex.axis=1.2)
 
   axis(side=1, las=1, label=x.lab[p], lwd.ticks = 2, cex.axis = 1.25)
-  axis(side=2, las=1, label=y.lab[p], lwd.ticks = 2, cex.axis = 1.25)
-  axis(side = 1, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1) 
-  axis(side = 2, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
-  axis(side = 3, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)     
-  axis(side = 4, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
+  axis(side=2, las=0, label=y.lab[p], lwd.ticks = 2, cex.axis = 1.25)
+  axis(side = 1, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2) 
+  axis(side = 2, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2)
+  axis(side = 3, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2)     
+  axis(side = 4, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2)
+  clip(-0.08, 0.1, -0.064, 0.1)
   abline(h=0, lty="dotted")
   abline(v=0, lty="dotted")
+  clip(-0.1, 0.1, -0.1, 0.1)
   mol.shape <- rep(NA, dim(RDA)[1])
     for (i in 1:length(mol.shape)){
       if (RDA$molecule[i] == "DNA"){mol.shape[i] = 21}
@@ -204,11 +234,18 @@ for (p in 1:length(dbRDA.output)){
     for (i in 1:length(slope.color)){
       if (RDA$slope[i] == levels(RDA$slope)[1]) {slope.color[i] = "wheat3"}
       else {slope.color[i] = "green3"}
-      }
-  points(RDA$CAP1, RDA$CAP2, pch=mol.shape, cex=2.0, col="black", bg=slope.color, lwd=2)
+    }
+  ran.ord <- sample(1:length(slope.color), length(slope.color), replace = F)
+  points(PCoA$points[, 1][ran.ord], PCoA$points[, 2][ran.ord], 
+         pch=mol.shape[ran.ord], 
+         cex=2.0, col="black", bg=slope.color[ran.ord], lwd=2)
   box(lwd=2)
   
-  text(x = -0.58, y = 0.45, labs[p], cex = 1.5)
+  text(x = -0.09, y = 0.075, labs[p], cex = 1.5)
+  text(x = 0, y = -0.075, adj = 0.5, 
+       labels = paste("PCoA 1 = ", explainvar1, "%", sep = ""), cex = 1.25)
+  text(x = -0.09, y = 0, adj = 0.5, srt=90,
+       labels = paste("PCoA 2 = ", explainvar2, "%", sep = ""), cex = 1.25)
 }
   
 mtext("Axis 1", side = 1, cex = 1.5, outer=T, line = 3)
@@ -235,45 +272,25 @@ img <- readPNG("../figures/BIDE_Ordination.png")
 grid.raster(img)
 ```
 
-# Multivariate Analysis of BIDE Simulations
-
+## Multivariate Summary of BIDE Simulations
 A general discussion that the simulations agreed with theory outlined in Fig. 1. 
 Will reference ordinations and PCoA. 
 Discussed Table 1 having summary data from the PERMANOVA results.
 
 ```{r}
-input <- list.files("../microbide/SbyS/", "*.txt")
-input <- input[c(1,2,3,6)]
+dbRDA.output[[1]]$dbRDA
+dbRDA.output[[1]]$Var_Part
+plot(dbRDA.output[[1]]$Var_Part, Xnames = c("Slope", "Molecule"))
 
-permanova.output <- list()
+dbRDA.output[[2]]$Var_Part
+dbRDA.output[[3]]$Var_Part
 
-for (i in c(1:length(input))){
-  shared <- paste("../microbide/SbyS/", input[i], sep="")
-  design <- "../data/simmy.design.txt"
-  sbys.in <- read.otu(shared, "0.03")
-  design.in <- read.delim(design, header=T, row.names=1)
-  
-  # Remove any OTUs with <2 OTUs
-  sbys.red <- sbys.in[,which(colSums(sbys.in) >= 10)]
-  
-  # Relative Abundances
-  sbysREL <- sbys.red
-  for(j in 1:nrow(sbys.red)){
-    sbysREL[j,] = sbys.red[j,]/sum(sbys.red[j,])
-  }
-  
-  
-  # Log Transformation
-  sbysREL.log <- decostand(sbysREL, method="log")
-  Adonis.b <- adonis(sbysREL.log ~ design.in$molecule * design.in$slope)
-  permanova.output[[input[i]]] = Adonis.b
-  }
-
-
+dbRDA.output[[4]]$dbRDA
+dbRDA.output[[4]]$Var_Part
+plot(dbRDA.output[[4]]$Var_Part)
 ```
 
-# Figure 4: Emperical Data
-
+# Emperical Data Ordinations
 Ordination of empirical data consistent with the view that non-random entrance and exiting from dormancy on top of environmental filtering influence community assembly
 
 ```{r}
@@ -302,17 +319,18 @@ ec_data3 <- ec_data2[-c(which(rownames(ec_data2) %in%
 rownames(ec_data3)
 
 # Remove OTUs with less than two observations across samples
-ec_data_red <- ec_data3[,which(colSums(ec_data3) >= 2)]
+ec_data_red <- ec_data3[,which(colSums(ec_data3) >= 5)]
+
+# Rarefied
+floor(min(rowSums(ec_data_red)))
+# ec_data_red <- rrarefy(ec_data_red, 0.9 * min(rowSums(ec_data_red)))
 
 # Import Design
 design <- read.delim(design.in, header=T, row.names=1)
 
 # Match OTU matrix and design
 design_red <- design[which(rownames(design) %in% rownames(ec_data_red)),]
-```
 
-# Run dbRDA By Hand
-```{r}
 # Create factors for model
 slope <- design_red$slope # factor 1
 molecule <- design_red$molecule # factor 2
@@ -320,15 +338,19 @@ paired <- design_red$paired_across_slope
 site <- design_red$site
 station <- design_red$station
 slope.molecule <- data.frame(cbind(as.character(slope),
-                                   as.character(molecule))) # Y matrix with factor 1 and 2
-slope.molecule.concat <- do.call(paste, c(slope.molecule[c("X1", "X2")],
-                                          sep = "")) # create unique treat ID vector
+                  as.character(molecule))) # Y matrix with factor 1 and 2
+
+slope.molecule.concat <- do.call(paste, 
+                                 c(slope.molecule[c("X1", "X2")],
+                                   sep = "")) # create unique treat ID vector
+
 # Create a vector of molecules by station
 station.molecule.concat <- paste(station, molecule, sep = "")
 
 
 pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:5), each=2), 
                   rep(seq(1:10), each=2), rep(seq(1:9), each=2))
+
 # To include "questionable" data uncomment the following
 # pair.station <- c(rep(seq(1:9), each=2), rep(seq(1:8), each=2),
 #    rep(seq(1:10), each=10), rep(seq(1:9), each=2))
@@ -338,6 +360,9 @@ otu.matrix <- ec_data_red
 
 # Calculate Presense Absence
 dataPA <- (otu.matrix > 0)*1
+
+all.equal(row.names(ec_data_red), row.names(design_red))
+boxplot(rowSums(dataPA) ~ slope.molecule.concat)
 
 # Calculating Relative Abundance
 dataREL <- otu.matrix
@@ -355,17 +380,120 @@ dataChord <- decostand(ec_data_red, method="normalize")
 dataHell <- decostand(ec_data_red, method="hellinger")
 
 # Create Distance Matrix with bray (deafault), manhattan, euclidean, canberra, bray, kulczynski, jaccard, gower, altGower, morisita, horn, mountford, raup, binomial, or chao. Most should be part of vegan, but possilbly 'labdsv' or 'BiodiversityR' packages
+
 samplePA.dist <- vegdist(dataREL.l,method="bray")
 sampleREL.dist <- vegdist(dataREL.l,method="bray")
 
+# PCoA
+ec.bc <- vegdist(dataREL.l, method = "bray")
+ec.pcoa <- cmdscale(ec.bc, k = 3, eig = T)
+
+# Percent Variance Explained Using PCoA (Axis 1,2,3)
+explainvar1 <- round(ec.pcoa$eig[1]/sum(ec.pcoa$eig)*100,2)
+explainvar2 <- round(ec.pcoa$eig[2]/sum(ec.pcoa$eig)*100,2)
+
+PCoA <- as.data.frame(scores(ec.pcoa, display = "sites"))
+PCoA$molecule <- molecule
+PCoA$slope <- slope
+PCoA$station <- station
+PCoA$labs <- slope.molecule.concat
+
+PCoA.out <- list("PCoA" = PCoA,
+                "explainvar1" = explainvar1,
+                "explainvar2" = explainvar2)
+```
+
+## Figure 4
+```{r}
+# Plot
+png(filename = "../figures/EC_Ordination.png", 
+    width = 1000, height = 1000, res = 96 * 2)
+
+# Plot Parameters
+par(mfrow=c(1,1), mar=c(0.5,0.5,0,0), oma=c(1, 1, 1, 1))
+layout(matrix(c(1, 2), 2, 1, byrow=T), heights=c(4, 1))
+
+par(mar=c(4,4,0,0))
+
+x.lab <- c(T)
+y.lab <- c(T)
+
+# Plot
+PCoA <- PCoA.out$PCoA
+explainvar1 <- PCoA.out$explainvar1
+explainvar2 <- PCoA.out$explainvar2
+
+x.dim <- c(-0.3, 0.3)
+y.dim <- c(-0.25, 0.2)
+
+# Initiate Plot
+plot(PCoA$Dim1, PCoA$Dim2, xlab = "", ylab="",
+     xlim=x.dim,ylim= y.dim, pch=16, cex=2.0, type="n",xaxt="n",
+     yaxt="n", cex.lab=1.5, cex.axis=1.2)
+
+axis(side=1, las=1, label=T, lwd.ticks = 2)
+axis(side=2, las=1, label=T, lwd.ticks = 2)
+axis(side = 1, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1) 
+axis(side = 2, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
+axis(side = 3, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)     
+axis(side = 4, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
+abline(h=0, lty="dotted")
+abline(v=0, lty="dotted")
+mol.shape <- rep(NA, dim(PCoA)[1])
+  for (i in 1:length(mol.shape)){
+    if (PCoA$molecule[i] == "DNA"){mol.shape[i] = 21}
+    else {mol.shape[i] = 22}
+  }
+
+slope.color <- rep(NA, dim(PCoA)[1])
+  for (i in 1:length(slope.color)){
+    if (PCoA$slope[i] == levels(PCoA$slope)[1]) {slope.color[i] = "wheat3"}
+    else {slope.color[i] = "green3"}
+  }
+
+
+points(PCoA$Dim1, PCoA$Dim2, pch=mol.shape, cex=1.5, 
+       col="black", bg=slope.color, lwd=2)
+text(PCoA$Dim1 * 1.2, PCoA$Dim2 * 1.2, labels = PCoA$station)
+ordiellipse(cbind(PCoA$Dim1, PCoA$Dim2), RDA$labs, kind="sd", conf=0.95,
+            lwd=2, lty=3, draw = "lines", col = "black", label=FALSE)
+box(lwd=2)
+  
+mtext(paste("PCoA 1 (", explainvar1, "%)", sep = ""), side = 1, cex = 1.5, outer=F, line = 3)
+mtext(paste("PCoA 2 (", explainvar2, "%)", sep = ""), side = 2, cex = 1.5, outer=F, line = 3) 
+  
+# Legend
+par(mar=c(0,4,0,0))
+plot.new()
+legend("center", c(paste("All; ",levels(PCoA$slope)[1]," Slope", sep=""),
+      paste("All; ",levels(PCoA$slope)[2]," Slope", sep=""),
+     paste("Active; ",levels(PCoA$slope)[1]," Slope", sep=""),
+   paste("Active; ",levels(PCoA$slope)[2]," Slope", sep="")),
+   pt.lwd=2, col="black", pt.bg=c("wheat3", "green3", "wheat3",
+   "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=1, pt.cex=1.2)  
+
+# Close Plot Device
+dev.off()
+graphics.off()
+#```
+
+## Show Plot
+#```{r}
+img <- readPNG("../figures/EC_Ordination.png")
+grid.raster(img)
+```
+
+## Multivariate Summary
+```{r}
+
 # Distance Based Redundancy Analysis
-#dbRDA <- capscale(dataRel.l ~ slope + molecule + Condition(paired), distance="bray")
-dbRDA <- capscale(dataREL.l ~ slope + molecule, distance="bray")
+dbRDA_pair <- dbrda(dataREL.l ~ slope * molecule + Condition(paired), distance="bray")
+dbRDA <- dbrda(dataREL.l ~ slope * molecule, distance="bray")
 
-
-#   head(summary(dbRDA))
-#   anova(dbRDA, by="terms", permu=999)
-#   varpart(dataREL,  ~ slope, ~ molecule)
+head(summary(dbRDA))
+anova(dbRDA, by="terms", permu=999)
+anova(dbRDA_pair, by = "terms", permu = 999)
+varpart(dataREL,  ~ slope, ~ molecule)
 
 # Percent Variance Explained Using PCoA (Axis 1,2,3)
 explainvar1 <- round(dbRDA$CCA$eig[1]/sum(dbRDA$CCA$eig, dbRDA$CA$eig)*100,2)
@@ -380,93 +508,10 @@ RDA$labs <- slope.molecule.concat
 RDA.out <- list("RDA" = RDA,
                 "explainvar1" = explainvar1,
                 "explainvar2" = explainvar2)
-```
-
-
-```{r}
-dbRDA.output = ec.dbRDA(otu.matrix = ec_data_red, design = design)
-
-
-# Plot
-png(filename = "../figures/EC_Ordination.png", 
-    width = 1000, height = 1000, res = 96 * 2)
-
-# Plot Parameters
-par(mfrow=c(1,1), mar=c(0.5,0.5,0,0), oma=c(5, 5, 1, 1))
-layout(matrix(c(2, 1), 2, 1, byrow=T), heights=c(0.5, 4.5))
-
-x.lab <- c(T)
-y.lab <- c(T)
-
-# Plot
-  RDA <- dbRDA.output$RDA
-  explainvar1 <- dbRDA.output$explainvar1
-  explainvar2 <- dbRDA.output$explainvar2
-
-  x.dim <- c(-0.5, 0.5)
-  y.dim <- c(-0.4, 0.3)
-
-  # Initiate Plot
-  plot(RDA$CAP1, RDA$CAP2, xlab = "", ylab="",
-    xlim=x.dim,ylim= y.dim, pch=16, cex=2.0, type="n",xaxt="n",
-    yaxt="n", cex.lab=1.5, cex.axis=1.2)
-
-  axis(side=1, las=1, label=T, lwd.ticks = 2)
-  axis(side=2, las=1, label=T, lwd.ticks = 2)
-  axis(side = 1, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1) 
-  axis(side = 2, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
-  axis(side = 3, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)     
-  axis(side = 4, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
-  abline(h=0, lty="dotted")
-  abline(v=0, lty="dotted")
-  mol.shape <- rep(NA, dim(RDA)[1])
-    for (i in 1:length(mol.shape)){
-      if (RDA$molecule[i] == "DNA"){mol.shape[i] = 21}
-      else {mol.shape[i] = 22}
-      }
-  slope.color <- rep(NA, dim(RDA)[1])
-    for (i in 1:length(slope.color)){
-      if (RDA$slope[i] == levels(RDA$slope)[1]) {slope.color[i] = "wheat3"}
-      else {slope.color[i] = "green3"}
-      }
-  points(RDA$CAP1, RDA$CAP2, pch=mol.shape, cex=1.5, col="black", bg=slope.color, lwd=2)
-  ordiellipse(cbind(RDA$CAP1, RDA$CAP2), RDA$labs, kind="sd", conf=0.95,
-  lwd=2, lty=3, draw = "lines", col = "black", label=FALSE)
-  box(lwd=2)
-  
-mtext("Axis 1", side = 1, cex = 1.5, outer=T, line = 2.5)
-mtext("Axis 2", side = 2, cex = 1.5, outer=T, line = 2.5) 
-  
-# Legend
-par(mar=c(0, 0, 0, 0))
-plot.new()
-legend("center", c(paste("All; ",levels(RDA$slope)[1]," Slope", sep=""),
-      paste("All; ",levels(RDA$slope)[2]," Slope", sep=""),
-     paste("Active; ",levels(RDA$slope)[1]," Slope", sep=""),
-   paste("Active; ",levels(RDA$slope)[2]," Slope", sep="")),
-   pt.lwd=2, col="black", pt.bg=c("wheat3", "green3", "wheat3",
-   "green3"), pch=c(21,21,22,22), bty='n', ncol=2, cex=0.8, pt.cex=1)  
-
-# Close Plot Device
-dev.off()
-graphics.off()
-#```
-
-## Show Plot
-#```{r}
-img <- readPNG("../figures/EC_Ordination.png")
-grid.raster(img)
-```
-
-## PCoA Loadings
-```{r}
 
 
 
-```
 
-## PERMANOVA
-```{r}
 # Match OTU matrix and design
 design_red <- design[which(rownames(design) %in% rownames(ec_data_red)),]
 
@@ -486,11 +531,42 @@ Adonis.b
 
 ## Within Site Diversity
 ```{r}
-EC.OTU <- read.otu(shared, "0.03")
-EC.design <- read.delim(design, header=T, row.names=1)
+shared <- "../data/EC.bac.final.shared"
+design.in <- "../data/design.txt"
+level  <-  "0.03"
 
-# Remove Bad Samples
-#EC.bad <- rownames(EC.OTU)[c(9,20:21,24:27,32,37,74)]
+# Run PCoA On Emperical Data
+
+ec_data <- read.otu(shared, "0.03")
+
+# Note: owing to amplification issues, we only sequenced 76 of 80 samples.
+# The four samples not included are C-1E-R, EC-2G-R, EC-2J-R, EC-6I-D
+dim(ec_data)
+counts <- count.groups(otu.matrix = ec_data)
+low.coverage <- counts[which(counts < 50000)]
+
+# Remove low coverage samples 
+ec_data2 <- ec_data[-c(which(rownames(ec_data) %in% c(names(low.coverage)))), ]
+
+# Remove problematic samples (EC_2A_D, EC_2A_R, EC_2C_R, EC_2D_R)
+#ec_data.tmp <- ec_data2[-c(9,20:21,24:27,32,37,74),]
+ec_data3 <- ec_data2[-c(which(rownames(ec_data2) %in% 
+                     c("EC_2A_D", "EC_2A_R","EC_2C_R", "EC_2D_R"))), ]
+
+rownames(ec_data3)
+
+# Remove OTUs with less than two observations across samples
+ec_data_red <- ec_data3[,which(colSums(ec_data3) >= 10)]
+
+EC.OTU <- ec_data_red
+
+# Import Design
+design <- read.delim(design.in, header=T, row.names=1)
+
+# Match OTU matrix and design
+design_red <- design[which(rownames(design) %in% rownames(ec_data_red)),]
+
+EC.design <- design_red
 
 # Samples by molecules
 DNA <- rownames(EC.design[which(EC.design$molecule == "DNA"), ])
@@ -505,17 +581,6 @@ hist((rowSums(EC.OTU[which(rownames(EC.OTU) %in% RNA), ])),  las = 1, ylim = c(0
 mtext(side = 1, "Counts", line = 3, cex = 1.5)
 mtext(side = 2, "Sites", line = 3, cex = 1.5)
 
-hist(log10(rowSums(EC.OTU[which(rownames(EC.OTU) %in% EC.bad), ])), main = "Bad")
-
-hist(log10(rowSums(EC.OTU[-(which(rownames(EC.OTU) %in% EC.bad)), ])))
-
-# Remove any OTUs with <2 occurences (within and across sites)
-EC.OTU.2 <- EC.OTU[,which(colSums(EC.OTU) >= 2)]
-dim(EC.OTU.2)
-
-# Separate into DNA and RNA
-EC.DNA <- EC.OTU.2[which(EC.design$molecule == "DNA"), ]
-EC.RNA <- EC.OTU.2[which(EC.design$molecule == "RNA"), ]
 
 # Function for Calculating Species Richness w/ Resampling
 richness.iter <- function(otu.matrix  = " ", 
@@ -556,10 +621,143 @@ evenness.iter <- function(otu.matrix  = " ",
   return(data.frame(E = even.mean, E_se = even.se))
 }
 
-S.iter <- richness.iter(EC.OTU.2, min(rowSums(EC.OTU.2) * 0.9), 100)
-E.iter <- evenness.iter(EC.OTU.2, min(rowSums(EC.OTU.2) * 0.9), 100)
+#S.iter <- richness.iter(EC.OTU, min(rowSums(EC.OTU) * 0.9), 100)
+#E.iter <- evenness.iter(EC.OTU, min(rowSums(EC.OTU) * 0.9), 100)
+#write.csv(S.iter, file = "../data/ec.richness.txt", quote = F)
+#write.csv(E.iter, file = "../data/ec.evenness.txt", quote = F)
+S.iter <- read.csv("../data/ec.richness.txt", row.names = 1)
+E.iter <- read.csv("../data/ec.evenness.txt", row.names = 1)
+
+all.equal(row.names(S.iter), row.names(EC.design))
+all.equal(row.names(E.iter), row.names(EC.design))
+
+# Anova w/ Posthoc
+S.aov <- Anova(lm(S.iter$S ~ slope*molecule), type = "II")
+# Anova w/ Posthoc
+E.aov <- Anova(lm(E.iter$E ~ slope*molecule), type = "II")
+S.tukey <- agricolae::HSD.test(lm(S.iter$S ~ slope*molecule), 
+                               trt = c("slope", "molecule"))
+E.tukey <- agricolae::HSD.test(lm(E.iter$E ~ slope*molecule), 
+                               trt = c("slope", "molecule"))
 
 ```
+
+```{r}
+
+png(filename = "../figures/EC_Alpha.png", 
+    width = 1600, height = 1000, res = 96 * 2)
+
+par(mfrow = c(1, 1), mar = c(4, 4, 2, 2), oma = c(2, 2, 0, 0))
+layout(matrix(c(1,2), ncol = 2, byrow=T))
+
+S.bp <- boxplot(S.iter$S ~ slope.molecule.concat, lwd = 1.5, 
+        col = c("wheat3", "wheat3", "green3", "green3"),
+        xlab = "", ylab = "", ylim = c(3000, 5000), axes = F)
+axis(side=1, las=1, at = c(1, 2, 3, 4), 
+     labels=c("All", "Active", "All", "Active"), lwd.ticks = 2)
+axis(side=1, las=1, at = c(1.5, 3.5), tick = F, line = 2,
+     labels=c("African", "European"), font = 2)
+axis(side=2, las=1, label=T, lwd.ticks = 2)
+axis(side = 1, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1) 
+axis(side = 2, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
+axis(side = 4, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1)
+mtext("Species Richness", side = 2, cex = 1.5, outer=F, line = 3.5) 
+text(x = c(1,2,3,4), y = S.bp$stats[5,] + 70, labels = c("a", "a", "b", "b"))
+box(lwd=2)
+
+E.bp <- boxplot(E.iter$E ~ slope.molecule.concat, lwd = 1.5, 
+        col = c("wheat3", "wheat3", "green3", "green3"),
+        xlab = "", ylab = "", ylim = c(0.02, 0.08), axes = F)
+axis(side=1, las=1, at = c(1, 2, 3, 4), 
+     labels=c("All", "Active", "All", "Active"), lwd.ticks = 2)
+axis(side=1, las=1, at = c(1.5, 3.5), tick = F, line = 2,
+     labels=c("African", "European"), font = 2)
+axis(side=2, las=1, label=T, lwd.ticks = 2, at = c(0.02, 0.04, 0.06, 0.08))
+axis(side = 1, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1) 
+axis(side = 2, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1,
+     at = c(0.02, 0.04, 0.06, 0.08))
+axis(side = 4, lwd.ticks = 2, tck=0.01, labels = F,  cex.axis = 2, las = 1, 
+     at = c(0.02, 0.04, 0.06, 0.08))
+mtext("Species Evenness", side = 2, cex = 1.5, outer=F, line = 3.5) 
+text(x = c(1,2,3,4), y = E.bp$stats[5,] + 0.002, labels = c("b", "a", "c", "b"))
+
+box(lwd=2) 
+        
+      
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+## Show Plot
+img <- readPNG("../figures/EC_Alpha.png")
+grid.raster(img)
+```
+
+
+# Generalist and Specialists
+```{r}
+# Spatial Generalits: Found in majority of Sites
+# otu.matrix, dataPA
+# Import Taxonomy
+ec.tax <- read.tax(taxonomy = "../data/EC.bac.final.0.03.taxonomy", 
+                   format = "silva")
+
+
+dataPA[1:5, 1:5]
+
+dim(dataPA); dim(design_red)
+dataPA.active <- dataPA[which(design_red$molecule == "RNA"), ]
+dataPA.all    <- dataPA[which(design_red$molecule == "DNA"), ]
+ec.gens <- names(which(colSums(dataPA.active) == dim(dataPA.active)[1]))
+
+ec.gens.tax <- ec.tax[which(ec.tax$OTU %in% ec.gens), ]
+
+ec.gens.rel <- dataREL[, which(colnames(dataREL) %in% ec.gens)]
+rowSums(ec.gens.rel)
+
+ec.gens.rel[1:5, 1:5]
+
+# AF Specialists
+dataPA.aa <- dataPA[which(design_red$molecule == "RNA" & 
+                            design_red$slope == "AF"), ]
+dim(dataPA.aa)
+ec.aa.gens <- names(which(colSums(dataPA.aa) == dim(dataPA.aa)[1]))
+
+
+# EU Specialists
+dataPA.ae <- dataPA[which(design_red$molecule == "RNA" & 
+                            design_red$slope == "EU"), ]
+dim(dataPA.ae)
+ec.ae.gens <- names(which(colSums(dataPA.ae) == dim(dataPA.ae)[1]))
+
+ec.aa.spec <- setdiff(ec.aa.gens, ec.ae.gens)
+
+```
+
+# Indicator Taxa
+```{r}
+
+library("labdsv")
+
+ec.indicators <- indval(dataREL, slope.molecule.concat)
+summary(ec.indicators, p = 0.05, type = "long", digits = 3, sort = T)
+
+
+gr <- ec.indicators$maxcls[ec.indicators$pval<=0.05]
+iv <- ec.indicators$indcls[ec.indicators$pval<=0.05]
+pv <- ec.indicators$pval[ec.indicators$pval<=0.05]
+fr <- apply(dataREL, 2, sum)[ec.indicators$pval<=0.05]
+indvalsummary <- data.frame(group=gr, indval=iv, pvalue=pv, freq=fr)
+indvalsummary <- indvalsummary[order(indvalsummary$group,
+                                     -indvalsummary$indval),]
+indvalsummary2 <- indvalsummary[which(indvalsummary$freq > 0.01), ]
+indvalsummary2.names <- rownames(indvalsummary2)
+
+indvalsummary2.tax <- ec.tax[which(ec.tax$OTU %in% indvalsummary2.names ), ]
+
+```
+
 
 
 
