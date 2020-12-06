@@ -1,19 +1,13 @@
 summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.count_table, processors=8)
-
-
-
-
-classify.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.count_table, reference=silva.nr_v128.align, taxonomy=silva.nr_v128.tax, cutoff=50, probs=F, processors=16)
-
-
-remove.lineage(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.count_table, taxonomy=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.nr_v128.wang.taxonomy, taxon=Archaea-Chloroplast-Mitochondria-Eukaryota-unknown)
-
-
+classify.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.count_table, reference=./trainset16_022016.pds.fasta, taxonomy=./trainset16_022016.pds.tax, cutoff=50, probs=F, processors=16)
+remove.lineage(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.count_table, taxonomy=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pds.wang.taxonomy, taxon=Archaea-Mitochondria-Cyanobacteria/Chloroplast;Chloroplast-unknown-Eukaryota)
 summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.count_table, processors=16)
-
-cluster.split(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.count_table, taxonomy=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.nr_v128.wang.pick.taxonomy, method=opti, splitmethod=classify, taxlevel=4, cutoff=0.03, processors=16)
-make.shared(list=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.unique_list.list, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.count_table, label=0.03)
-classify.otu(list=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.unique_list.list, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.count_table, taxonomy=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.nr_v128.wang.pick.taxonomy, label=0.03)
-system(cp ./EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.unique_list.shared ./EC.bac.final.shared)
-system(cp ./EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.unique_list.0.03.cons.taxonomy ./EC.bac.final.0.03.taxonomy)
-system(cp ./EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.unique_list.0.03.cons.tax.summary ./EC.bac.final.0.03.tax.summary)
+cluster.split(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.count_table, taxonomy=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pds.wang.pick.taxonomy, method=opti, splitmethod=classify, taxlevel=4, cutoff=0.03, processors=16)
+make.shared(list=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.list, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.count_table, label=0.03)
+classify.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.count_table, reference=./trainset16_022016.pds.fasta, taxonomy=./trainset16_022016.pds.tax, cutoff=80, probs=T, processors=16)
+classify.otu(list=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.list, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.count_table, taxonomy=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.pds.wang.taxonomy, label=0.03)
+get.oturep(list=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.list,  fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.count_table, label=0.03, method=abundance)
+system(cp ./EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.shared ./EC.bac.final.shared)
+system(cp ./EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.0.03.cons.taxonomy ./EC.bac.final.0.03.taxonomy)
+system(cp ./EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.0.03.cons.tax.summary ./EC.bac.final.0.03.tax.summary)
+system(cp ./EC.trim.contigs.good.unique.good.filter.good.unique.precluster.pick.pick.opti_mcc.0.03.rep.fasta, ./EC.bac.final.0.03.rep.fasta)
