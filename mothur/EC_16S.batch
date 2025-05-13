@@ -1,0 +1,80 @@
+# Evolution Canyon 16S Analysis: Last Update, 27-Feb-23 MEM, Rita, Mothur: 1.48.0
+# Load Mothur (Rita): export PATH=$PATH:/usr/local/MOTHUR/bin
+#
+# make.file(inputdir=./raw/, outputdir=./analysis, type=fastq, prefix=EC) Only run this once and then clean it up and rename as needed 
+# Edit EC.files after running to make any adjustments (or use version in repo)
+# Run from analysis folder
+make.contigs(file=EC.files, inputdir=../raw/, outputdir=../analysis/, processors=16)
+summary.seqs(fasta=EC.trim.contigs.fasta, processors=16)
+# 15008679 sequences
+screen.seqs(fasta=EC.trim.contigs.fasta, count=EC.contigs.count_table, summary=EC.trim.contigs.summary, maxambig=0, maxlength=300, processors=16)
+# removed 3098258
+unique.seqs(fasta=EC.trim.contigs.good.fasta, count=EC.contigs.good.count_table)
+summary.seqs(fasta=EC.trim.contigs.good.unique.fasta, count=EC.trim.contigs.good.count_table, processors=16)
+# 2203667 Unique Seqs; 11910421 Total Seqs
+align.seqs(fasta=EC.trim.contigs.good.unique.fasta, reference=../../dbs/silva_v132.v4v5.fasta, flip=F, processors=16)
+#  Note: took 1336 secs to align 2203667
+#
+summary.seqs(fasta=EC.trim.contigs.good.unique.align, processors=16)
+screen.seqs(fasta=EC.trim.contigs.good.unique.align, count=EC.trim.contigs.good.count_table, minlength=250, optimize=start-end-minlength, maxhomop=8, processors=16)
+summary.seqs(fasta=EC.trim.contigs.good.unique.good.align, count=EC.trim.contigs.good.good.count_table, processors=16)
+# 2102385 unique seqs; 11645138 total seqs
+filter.seqs(fasta=EC.trim.contigs.good.unique.good.align, vertical=T, trump=.)
+summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.fasta,count=EC.trim.contigs.good.good.count_table, processors=16)
+screen.seqs(fasta=EC.trim.contigs.good.unique.good.filter.fasta, count=EC.trim.contigs.good.good.count_table, minlength=250, optimize=start-end-minlength, maxhomop=8, processors=16)
+summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.fasta, count=EC.trim.contigs.good.good.good.count_table, processors=16)
+unique.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.fasta, count=EC.trim.contigs.good.good.good.count_table)
+summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.fasta, count=EC.trim.contigs.good.unique.good.filter.good.count_table, processors=16)
+# 1961241 unique seqs: 11487007 total seqs
+pre.cluster(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.fasta, count=EC.trim.contigs.good.unique.good.filter.good.count_table, diffs=2, processors=1)
+summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.count_table, processors=16)
+# 666967 unique seqs; 11487007 total seqs
+chimera.vsearch(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.count_table, dereplicate=t)
+#  Note: Changed from uchime to vsearch
+#  removed 27998 unique seqs
+summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.count_table, processors=16)
+# 638969 unique seqs; 11392215 total seqs
+classify.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.count_table, reference=../../dbs/trainset18_062020.pds.fasta, taxonomy=../../dbs/trainset18_062020.pds.tax, processors=16)
+remove.lineage(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.count_table, taxonomy=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pds.wang.taxonomy, taxon=Archaea-Mitochondria-Chloroplast-unknown-Eukaryota)
+# Output File Names:
+#  EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pds.wang.pick.taxonomy
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.count_table
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.fasta
+summary.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.count_table, processors=16)
+# 633199 unique seqs; 11180152 total seqs
+cluster.split(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.count_table, taxonomy=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pds.wang.pick.taxonomy, method=opti, taxlevel=4, cutoff=0.03, processors=16)
+
+classify.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.count_table, reference=../../dbs/trainset18_062020.pds.fasta, taxonomy=../../dbs/trainset18_062020.pds.tax, processors=16)
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.pds.wang.taxonomy
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.pds.wang.tax.summary
+classify.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.count_table, reference=../../dbs/silva.nr_v138_1.align, taxonomy=../../dbs/silva.nr_v138_1.tax, processors=16)
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.nr_v138_1.wang.taxonomy
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.nr_v138_1.wang.tax.summary
+classify.seqs(fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.count_table, reference=../../dbs/silva.nr_v132.align, taxonomy=../../dbs/silva.nr_v132.tax, cutoff=70, processors=16)
+# Output File Names:
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.nr_v132.wang.taxonomy
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.nr_v132.wang.tax.summary
+remove.lineage(list=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.list, fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.count_table, taxonomy=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.nr_v132.wang.taxonomy, label=0.03, taxon=Archaea-Mitochondria-Chloroplast-unknown-Eukaryota)
+# Output File Names:
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.nr_v132.wang.pick.taxonomy
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.list
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.pick.count_table
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.pick.fasta
+
+make.shared(list=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.list, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.pick.count_table, label=0.03)
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.shared
+
+classify.otu(list=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.list, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.pick.count_table, taxonomy=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.nr_v132.wang.pick.taxonomy)
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.0.03.cons.taxonomy
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.0.03.cons.tax.summary
+
+
+
+get.oturep(list=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.list,  fasta=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.pick.fasta, count=EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.pick.count_table, method=abundance)
+# EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.0.03.rep.fasta
+
+
+system(cp ./EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.shared ./EC.bac.final.shared)
+system(cp ./EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.0.03.cons.taxonomy ./EC.bac.final.0.03.taxonomy)
+system(cp ./EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.0.03.cons.tax.summary ./EC.bac.final.0.03.tax.summary)
+system(cp ./EC.trim.contigs.good.unique.good.filter.good.unique.precluster.denovo.vsearch.pick.opti_mcc.0.03.pick.0.03.rep.fasta ./EC.bac.final.0.03.rep.fasta)

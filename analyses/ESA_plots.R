@@ -1,6 +1,6 @@
 ################################################################################
 #                                                                              #
-#	Evolution Canyon Project: Microbial Community Annalysis by                   #
+#	Evolution Canyon Project: Microbial Community Analysis by                   #
 #                           Distance Based Redundancy Analysis                 #
 #                                                                              #
 # This code was used to develop the simulation results figures for ESA         #
